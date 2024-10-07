@@ -1,18 +1,17 @@
 import 'package:dio/dio.dart';
 import 'SessionManager.dart';
 
-class GeneralizedNetworkManager {
+class NetworkManager {
   SessionManager? sessionManager;
 
-  static final GeneralizedNetworkManager _instance =
-      GeneralizedNetworkManager._internal();
+  static final NetworkManager _instance = NetworkManager._internal();
   late Dio _dio;
 
-  factory GeneralizedNetworkManager({SessionManager? sessionManager}) {
+  factory NetworkManager({SessionManager? sessionManager}) {
     return _instance;
   }
 
-  GeneralizedNetworkManager._internal() {
+  NetworkManager._internal() {
     _dio = Dio();
   }
 
@@ -31,8 +30,7 @@ class GeneralizedNetworkManager {
       headers = headers ?? {};
       options = options ?? Options(headers: headers);
 
-      List<String>? savedCookies =
-          await sessionManager?.getSessionCookies();
+      List<String>? savedCookies = await sessionManager?.getSessionCookies();
       if (savedCookies!.isNotEmpty) {
         headers['Cookie'] = savedCookies.join('; ');
       }
