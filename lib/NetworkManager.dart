@@ -40,13 +40,9 @@ class NetworkManager {
       switch (method.toUpperCase()) {
         case 'POST':
           response = await _dio.post(url, data: body, options: options);
-          //_storeResponseCookies(response);
-
           break;
         case 'GET':
           response = await _dio.get(url, options: options);
-          //   _storeResponseCookies(response);
-
           break;
         case 'PUT':
           response = await _dio.put(url, data: body, options: options);

@@ -10,28 +10,25 @@ class SessionManager {
 
   SessionManager._internal();
 
-
-
   Future<void> saveSessionCookies(List<String> cookies) async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     String cookiesString = cookies.join('; ');
     await prefs.setString(_cookieKey, cookiesString);
     print("Saving session  cookies: $_cookieKey : $cookiesString");
-}
+  }
 
-Future<List<String>> getSessionCookies() async {
+  Future<List<String>> getSessionCookies() async {
     print("Retrieving session cookies...");
     SharedPreferences prefs = await SharedPreferences.getInstance();
     String? cookieString = prefs.getString(_cookieKey);
     print("Current stored cookies: $cookieString");
     if (cookieString != null && cookieString.isNotEmpty) {
-      return cookieString.split('; '); 
+      return cookieString.split('; ');
     }
-        print("no session cookies in session manager class ");
+    print("no session cookies in session manager class ");
 
     return [];
-}
-
+  }
 
   Future<void> clearSession() async {
     print("Clearing session cookies...");
