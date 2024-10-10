@@ -1,7 +1,7 @@
 # flutter_cookie_bridge
 
 [![Pub Version](https://img.shields.io/pub/v/flutter_cookie_bridge)](https://pub.dev/packages/flutter_cookie_bridge)
-[![License](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/your_username/flutter_cookie_bridge/blob/master/LICENSE)
+[![License](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/spense-fintech/flutter_cookie_bridge/blob/main/LICENSE)
 
 A Flutter plugin that synchronizes cookies between network requests (using [Dio](https://pub.dev/packages/dio)) and WebViews (using [flutter_inappwebview](https://pub.dev/packages/flutter_inappwebview)), enabling seamless session management across your Flutter application.
 
