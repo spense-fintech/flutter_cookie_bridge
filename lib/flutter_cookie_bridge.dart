@@ -3,7 +3,6 @@ import 'SessionManager.dart';
 import 'flutter_cookie_bridge_platform_interface.dart';
 
 class FlutterCookieBridge {
-
   FlutterCookieBridge._internal() {
     networkManager = NetworkManager(sessionManager: _sessionManager);
   }
@@ -21,7 +20,9 @@ class FlutterCookieBridge {
     return await _sessionManager.getSessionCookies();
   }
 
-  clearSession() {}
+    clearSession() {
+      _sessionManager.clearSession();
+    }
 
   Future<String?> getPlatformVersion() {
     return FlutterCookieBridgePlatform.instance.getPlatformVersion();
