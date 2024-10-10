@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
-
 import 'SessionManager.dart';
 
 class WebViewManager extends StatefulWidget {
@@ -8,32 +7,52 @@ class WebViewManager extends StatefulWidget {
   final String cookie;
   final Map<String, dynamic>? options;
 
+  // GlobalKey to access the state of the WebViewManager
+  static final GlobalKey<_CustomWebViewState> globalKey = GlobalKey<_CustomWebViewState>();
+
   WebViewManager({
+    Key? key,
     required this.url,
     required this.cookie,
-    this.options, 
-  });
+    this.options,
+  }) : super(key: globalKey);  // Assign the global key here
+
+  // Method to access the loadUrl method from the state
+  Future<void> loadUrl(String url) async {
+    final state = globalKey.currentState;  // Access the current state
+    if (state != null) {
+      await state.loadUrl(url);  // Call loadUrl from the state
+    }
+  }
+
+  
 
   @override
   _CustomWebViewState createState() => _CustomWebViewState();
 }
 
 class _CustomWebViewState extends State<WebViewManager> {
-  late InAppWebViewController webViewController;
+  InAppWebViewController? _webViewController;
   String? _currentUrl;
+  String? _currentCookie;
+
   final SessionManager _sessionManager = SessionManager();
 
   @override
   void initState() {
     super.initState();
     _currentUrl = widget.url;
+    _currentCookie = widget.cookie;
   }
 
   @override
   void dispose() {
+    _webViewController = null;
     super.dispose();
-    webViewController.dispose();
   }
+
+
+  
 
   Future<void> _syncCookiesToWebView() async {
     Uri? uri = Uri.tryParse(_currentUrl!);
@@ -59,8 +78,7 @@ class _CustomWebViewState extends State<WebViewManager> {
       headers.addAll(Map<String, String>.from(widget.options!['headers']));
     }
 
-    headers['Cookie'] = widget.cookie;
-
+    headers['Cookie'] = _currentCookie ?? widget.cookie;
     return headers;
   }
 
@@ -71,24 +89,33 @@ class _CustomWebViewState extends State<WebViewManager> {
     );
   }
 
+  Future<void> loadUrl(String url) async {
+    if (_webViewController != null) {
+      await _webViewController!.loadUrl(
+        urlRequest: URLRequest(url: WebUri(url)),
+      );
+      setState(() {
+        _currentUrl = url;  // Update the current URL and rebuild the widget
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: InAppWebView(
-        initialUrlRequest: URLRequest(
-          url: WebUri(widget.url),
-          headers: _buildHeaders(), 
-        ),
-        initialSettings: _buildWebViewSettings(), 
-        onWebViewCreated: (controller) async {
-          webViewController = controller;
-          await _syncCookiesToWebView();
-        },
-        onLoadStop: (controller, url) async {
-          _currentUrl = url?.toString();
-          await _syncCookiesToWebView();
-        },
+    return InAppWebView(
+      initialUrlRequest: URLRequest(
+        url: WebUri(_currentUrl!),
+        headers: _buildHeaders(),
       ),
+      initialSettings: _buildWebViewSettings(),
+      onWebViewCreated: (controller) async {
+        _webViewController = controller;
+        await _syncCookiesToWebView();
+      },
+      onLoadStop: (controller, url) async {
+        _currentUrl = url?.toString();
+        await _syncCookiesToWebView();
+      },
     );
   }
 }

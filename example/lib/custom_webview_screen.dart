@@ -5,13 +5,17 @@ import 'package:flutter_cookie_bridge_example/main.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_cookie_bridge/NetworkManager.dart';
+import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 
 class CustomWebViewScreen extends StatefulWidget {
   final String url;
   final String cookie;
 
-  const CustomWebViewScreen({super.key, required this.url, required this.cookie});
-
+  CustomWebViewScreen({
+    Key? key,
+    required this.url,
+    required this.cookie,
+  }) : super(key: key);
   @override
   CustomWebViewScreenState createState() => CustomWebViewScreenState();
 }
@@ -21,18 +25,17 @@ class CustomWebViewScreenState extends State<CustomWebViewScreen>
   String counterResult = '';
   String addCounterResult = '';
   String? _currentUrl;
+  late WebViewManager _webViewManager;
+
   final NetworkManager _networkManager = NetworkManager();
   final String? baseUrl = dotenv.env['BASE_URL'];
-
 
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addObserver(this);
-    _currentUrl = widget.url.isNotEmpty ? widget.url : '';
-    if (_currentUrl!.isEmpty) {
-      //  _loadLastSession();
-    }
+    _currentUrl = widget.url;
+
+    _webViewManager = WebViewManager(url: widget.url, cookie: widget.cookie);
     _loadSavedCounters();
   }
 
@@ -56,9 +59,13 @@ class CustomWebViewScreenState extends State<CustomWebViewScreen>
     await logout();
     await cookieBridge.clearSession();
 
-    // await CookieManager.instance().deleteAllCookies(); //TODO Varun try with syncCookies function
+    await CookieManager.instance()
+        .deleteAllCookies(); //TODO Varun try with syncCookies function
 
-    Navigator.pushReplacementNamed(context, '/');
+      Navigator.of(context).pushNamedAndRemoveUntil('/', (route) => false);
+
+
+    
   }
 
   Future<void> fetchCounter() async {
@@ -142,15 +149,15 @@ class CustomWebViewScreenState extends State<CustomWebViewScreen>
   }
 
   Future<void> navigateToCounter() async {
-    Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(
-        builder: (context) => CustomWebViewScreen(
-          url: '$baseUrl/design/counter',
-          cookie: widget.cookie,
-        ),
-      ),
-    );
+    print("navigating..");
+    // _webViewManager = WebViewManager(
+    //   url: '$baseUrl/design/counter',
+    //   cookie: widget.cookie,
+    // );
+
+     if (_webViewManager != null) {
+    _webViewManager.loadUrl('$baseUrl/design/counter');
+  }
   }
 
   @override
@@ -165,13 +172,7 @@ class CustomWebViewScreenState extends State<CustomWebViewScreen>
       appBar: AppBar(title: const Text('Custom WebView')),
       body: Column(
         children: [
-          Expanded(
-            flex: 6,
-            child: WebViewManager(
-              url: widget.url,
-              cookie: widget.cookie,
-            ),
-          ),
+          Expanded(flex: 6, child: _webViewManager),
           Expanded(
             flex: 4,
             child: Column(

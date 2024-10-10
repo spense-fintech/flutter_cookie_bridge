@@ -1,6 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_cookie_bridge/NetworkManager.dart';
+import 'package:flutter_cookie_bridge/SessionManager.dart';
 import 'package:flutter_cookie_bridge/flutter_cookie_bridge.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'custom_webview_screen.dart';
@@ -27,9 +28,9 @@ class MyHome extends StatefulWidget {
 
 class _MyHomeState extends State<MyHome> {
   final String? baseUrl = dotenv.env['BASE_URL'];
-  final NetworkManager _networkManager = NetworkManager();
 
-  @override
+  final NetworkManager _networkManager = NetworkManager();
+   @override
   void initState() {
     super.initState();
     _checkSession();
@@ -46,6 +47,7 @@ class _MyHomeState extends State<MyHome> {
         context,
         MaterialPageRoute(
           builder: (context) => CustomWebViewScreen(
+            key: UniqueKey(),
             url: '$baseUrl/api/user/session',
             cookie: allCookies,
           ),
@@ -61,10 +63,12 @@ class _MyHomeState extends State<MyHome> {
     try {
       print("Sending request to get token\n$requestBody");
       print("Sending request to $baseUrl/api/user/sso/");
+      print("headers: $headers");
 
-      Response? response = await _networkManager.post(
-        '$baseUrl/api/user/sso/',
-        requestBody,
+      Response? response = await _networkManager.request(
+        url: '$baseUrl/api/user/sso/',
+        method: 'POST',
+        body: requestBody,
         headers: headers,
       );
 
@@ -80,9 +84,10 @@ class _MyHomeState extends State<MyHome> {
     try {
       print("Sending token request with body: $requestBody");
 
-      Response? response = await _networkManager.post(
-        '$baseUrl/api/user/token/',
-        requestBody,
+      Response? response = await _networkManager.request(
+        url: '$baseUrl/api/user/token/',
+        method: 'POST',
+        body: requestBody,
       );
 
       print("Response from token API: ${response?.data}");
@@ -158,6 +163,7 @@ class _MyHomeState extends State<MyHome> {
             context,
             MaterialPageRoute(
               builder: (context) => CustomWebViewScreen(
+                key: UniqueKey(),
                 url: '$baseUrl/api/user/session',
                 cookie: allCookies,
               ),

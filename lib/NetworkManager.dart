@@ -7,9 +7,10 @@ class NetworkManager {
   static final NetworkManager _instance = NetworkManager._internal();
   late Dio _dio;
 
-  factory NetworkManager({SessionManager? sessionManager}) {
-    return _instance;
-  }
+   NetworkManager({SessionManager? sessionManager}) {
+      this.sessionManager = sessionManager ?? SessionManager(); 
+      _dio = Dio();
+  } //important change
 
   NetworkManager._internal() {
     _dio = Dio();
