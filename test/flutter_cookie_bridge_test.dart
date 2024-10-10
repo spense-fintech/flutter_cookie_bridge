@@ -7,13 +7,13 @@ import 'package:plugin_platform_interface/plugin_platform_interface.dart';
 class MockFlutterCookieBridgePlatform
     with MockPlatformInterfaceMixin
     implements FlutterCookieBridgePlatform {
-
   @override
   Future<String?> getPlatformVersion() => Future.value('42');
 }
 
 void main() {
-  final FlutterCookieBridgePlatform initialPlatform = FlutterCookieBridgePlatform.instance;
+  final FlutterCookieBridgePlatform initialPlatform =
+      FlutterCookieBridgePlatform.instance;
 
   test('$MethodChannelFlutterCookieBridge is the default instance', () {
     expect(initialPlatform, isInstanceOf<MethodChannelFlutterCookieBridge>());
@@ -21,7 +21,8 @@ void main() {
 
   test('getPlatformVersion', () async {
     FlutterCookieBridge flutterCookieBridgePlugin = FlutterCookieBridge();
-    MockFlutterCookieBridgePlatform fakePlatform = MockFlutterCookieBridgePlatform();
+    MockFlutterCookieBridgePlatform fakePlatform =
+        MockFlutterCookieBridgePlatform();
     FlutterCookieBridgePlatform.instance = fakePlatform;
 
     expect(await flutterCookieBridgePlugin.getPlatformVersion(), '42');
