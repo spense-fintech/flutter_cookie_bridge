@@ -8,13 +8,12 @@ import 'package:flutter_cookie_bridge/network_manager.dart';
 
 class CustomWebViewScreen extends StatefulWidget {
   final String url;
-  final String cookie;
 
   const CustomWebViewScreen({
     super.key,
     required this.url,
-    required this.cookie,
   });
+
   @override
   CustomWebViewScreenState createState() => CustomWebViewScreenState();
 }
@@ -50,22 +49,14 @@ class CustomWebViewScreenState extends State<CustomWebViewScreen>
     });
   }
 
-  Future<void> syncCookiesToNative() async {
-    var sessionCookies = await cookieBridge.getSessionCookies();
-
-    print("Cookies synced to native: $sessionCookies");
+  Future<void> handleLogout() async {
+    print("logging out");
+    await _webViewManager.logout(context);
   }
-
- Future<void> handleLogout() async {
-  print("logging out");
-  await _webViewManager.logout(context);  
-}
-
 
   Future<void> fetchCounter() async {
     try {
-      print("Cookie in webview is ${widget.cookie}");
-      var response = await getCounter(widget.cookie);
+      var response = await getCounter();
       if (response != null && response.statusCode == 200) {
         setState(() {
           counterResult = response.data['count'].toString();
@@ -82,25 +73,10 @@ class CustomWebViewScreenState extends State<CustomWebViewScreen>
     }
   }
 
-  Future<Response?> logout() async {
+  Future<Response?> getCounter() async {
     try {
       Response? response =
-          await _networkManager.get('$baseUrl/api/user/logout/');
-
-      print("response : ${response?.data}");
-
-      return response;
-    } catch (e) {
-      print("error logging out");
-      return null;
-    }
-  }
-
-  Future<Response?> getCounter(String cookies) async {
-    try {
-      Response? response = await _networkManager.get(
-          '$baseUrl/api/test/counter',
-          options: Options(headers: {'Cookie': cookies}));
+          await _networkManager.get('$baseUrl/api/test/counter');
       print("Counter response: ${response?.data}");
       return response;
     } catch (e) {
@@ -109,11 +85,10 @@ class CustomWebViewScreenState extends State<CustomWebViewScreen>
     }
   }
 
-  Future<Response?> incrementCounter(String cookies) async {
+  Future<Response?> incrementCounter() async {
     try {
-      Response? response = await _networkManager.get(
-          '$baseUrl/api/test/counter-add',
-          options: Options(headers: {'Cookie': cookies}));
+      Response? response =
+          await _networkManager.get('$baseUrl/api/test/counter-add');
 
       print("Increment counter response: ${response?.data}");
       return response;
@@ -125,7 +100,7 @@ class CustomWebViewScreenState extends State<CustomWebViewScreen>
 
   Future<void> addCounter() async {
     try {
-      var response = await incrementCounter(widget.cookie);
+      var response = await incrementCounter();
       if (response != null && response.statusCode == 200) {
         setState(() {
           addCounterResult = response.data['count'].toString();
@@ -150,7 +125,7 @@ class CustomWebViewScreenState extends State<CustomWebViewScreen>
     // );
 
     _webViewManager.loadUrl('$baseUrl/design/counter');
-    }
+  }
 
   @override
   void dispose() {
@@ -179,14 +154,6 @@ class CustomWebViewScreenState extends State<CustomWebViewScreen>
                     ElevatedButton(
                       onPressed: addCounter,
                       child: Text('Add to Counter'),
-                    ),
-                    ElevatedButton(
-                      onPressed: () async {
-                        List<String>? cookies =
-                            await cookieBridge.getSessionCookies();
-                        print("Cookie for app is  $cookies");
-                      },
-                      child: Text('Check cookie'),
                     ),
                   ],
                 ),

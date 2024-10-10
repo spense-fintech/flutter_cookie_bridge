@@ -29,27 +29,25 @@ class _MyHomeState extends State<MyHome> {
   final String? baseUrl = dotenv.env['BASE_URL'];
 
   final NetworkManager _networkManager = NetworkManager();
-   @override
+
+  @override
   void initState() {
     super.initState();
     _checkSession();
   }
 
   Future<void> _checkSession() async {
-    var savedCookies = await cookieBridge.getSessionCookies();
-    if (savedCookies.isNotEmpty) {
-      String allCookies = savedCookies.join('; ');
-      print("Session found, navigating to WebViewScreen...");
-      print("All saved cookies: $allCookies");
+    Response? response = await _networkManager.get('$baseUrl/api/user/session');
+    Map<String, dynamic> responseMap = response?.data;
 
+    print("SessionCheck ${response?.data}");
+
+    if (responseMap.containsKey("user")) {
       Navigator.push(
         context,
         MaterialPageRoute(
           builder: (context) => CustomWebViewScreen(
-            key: UniqueKey(),
-            url: '$baseUrl/api/user/session',
-            cookie: allCookies,
-          ),
+              key: UniqueKey(), url: '$baseUrl/api/user/session'),
         ),
       );
     } else {
@@ -60,10 +58,6 @@ class _MyHomeState extends State<MyHome> {
   Future<Response?> sso(
       Map<String, dynamic> requestBody, Map<String, dynamic> headers) async {
     try {
-      print("Sending request to get token\n$requestBody");
-      print("Sending request to $baseUrl/api/user/sso/");
-      print("headers: $headers");
-
       Response? response = await _networkManager.request(
         url: '$baseUrl/api/user/sso/',
         method: 'POST',
@@ -138,37 +132,13 @@ class _MyHomeState extends State<MyHome> {
       var tokenResponse = await login({"token": token});
 
       if (tokenResponse != null && tokenResponse.statusCode == 200) {
-        var cookiesHeader = tokenResponse.headers['set-cookie'];
-        List<String> savedCookies = [];
-
-        if (cookiesHeader != null) {
-          for (var cookie in cookiesHeader) {
-            var cookieValue = cookie.split(';')[0];
-
-            if (cookieValue.isNotEmpty &&
-                !cookieValue.startsWith('redirect_url=')) {
-              savedCookies.add(cookieValue);
-            }
-          }
-        }
-
-        // await sessionManager.saveSessionCookies(savedCookies);
-
-        if (savedCookies.isNotEmpty) {
-          String allCookies = savedCookies.join('; ');
-          print("All cookies going to WebView: $allCookies");
-
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(
-              builder: (context) => CustomWebViewScreen(
-                key: UniqueKey(),
-                url: '$baseUrl/api/user/session',
-                cookie: allCookies,
-              ),
-            ),
-          );
-        }
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (context) => CustomWebViewScreen(
+                key: UniqueKey(), url: '$baseUrl/api/user/session'),
+          ),
+        );
       }
     }
   }

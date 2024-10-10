@@ -19,16 +19,12 @@ class FlutterCookieBridge {
   final _sessionManager = SessionManager();
   late WebView _webView;
 
-  Future<List<String>> getSessionCookies() async {
-    return await _sessionManager.getSessionCookies();
-  }
-
   void clearSession() {
     _sessionManager.clearSession();
   }
 
   Future<WebView> getWebView({required String url, Map<String, dynamic>? options}) async {
-    List<String> cookies = await getSessionCookies();
+    List<String> cookies = await _sessionManager.getSessionCookies();
     String cookie = "";
     if (cookies.isNotEmpty) {
       cookie = cookies.join('; ');

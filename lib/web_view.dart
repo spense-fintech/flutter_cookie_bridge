@@ -8,31 +8,29 @@ class WebView extends StatefulWidget {
   final Map<String, dynamic>? options;
 
   // GlobalKey to access the state of the WebViewManager
-  static final GlobalKey<CustomWebViewState> globalKey = GlobalKey<CustomWebViewState>();
+  static final GlobalKey<CustomWebViewState> globalKey =
+      GlobalKey<CustomWebViewState>();
 
   WebView({
     Key? key,
     required this.url,
     required this.cookie,
     this.options,
-  }) : super(key: globalKey);  
+  }) : super(key: globalKey);
 
-   Future<void> loadUrl(String url) async {
-    final state = globalKey.currentState;   
-    if (state != null) {
-      await state.loadUrl(url);  
-    }
-  }
-
-
-     Future<void> logout(BuildContext context) async {
+  Future<void> loadUrl(String url) async {
     final state = globalKey.currentState;
     if (state != null) {
-      await state.logout(context);  
+      await state.loadUrl(url);
     }
   }
 
-  
+  Future<void> logout(BuildContext context) async {
+    final state = globalKey.currentState;
+    if (state != null) {
+      await state.logout(context);
+    }
+  }
 
   @override
   CustomWebViewState createState() => CustomWebViewState();
@@ -57,9 +55,6 @@ class CustomWebViewState extends State<WebView> {
     _webViewController = null;
     super.dispose();
   }
-
-
-  
 
   Future<void> _syncCookiesToWebView() async {
     Uri? uri = Uri.tryParse(_currentUrl!);
@@ -102,12 +97,12 @@ class CustomWebViewState extends State<WebView> {
         urlRequest: URLRequest(url: WebUri(url)),
       );
       setState(() {
-        _currentUrl = url;  
+        _currentUrl = url;
       });
     }
   }
 
-   Future<void> logout(BuildContext context) async {
+  Future<void> logout(BuildContext context) async {
     await _sessionManager.clearSession();
     await CookieManager.instance().deleteAllCookies();
     Navigator.of(context).pushNamedAndRemoveUntil('/', (route) => false);
