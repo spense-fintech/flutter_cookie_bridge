@@ -1,8 +1,8 @@
 name: flutter_cookie_bridge
-description: "The plugin acts as a bridge between the network manager and WebView"
-version: 0.0.1
-homepage:
-
+description: A Flutter plugin that synchronizes cookies between network requests and WebViews.
+version: 1.0.0
+repository: https://github.com/spense-fintech/flutter_cookie_bridge
+issue_tracker: https://github.com/spense-fintech/flutter_cookie_bridge/issues
 environment:
   sdk: '>=3.4.0-154.0.dev <4.0.0'
   flutter: '>=3.3.0'
