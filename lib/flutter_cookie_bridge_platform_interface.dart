@@ -1,5 +1,4 @@
 import 'package:plugin_platform_interface/plugin_platform_interface.dart';
-
 import 'flutter_cookie_bridge_method_channel.dart';
 
 abstract class FlutterCookieBridgePlatform extends PlatformInterface {
@@ -8,7 +7,8 @@ abstract class FlutterCookieBridgePlatform extends PlatformInterface {
 
   static final Object _token = Object();
 
-  static FlutterCookieBridgePlatform _instance = MethodChannelFlutterCookieBridge();
+  static FlutterCookieBridgePlatform _instance =
+      MethodChannelFlutterCookieBridge();
 
   /// The default instance of [FlutterCookieBridgePlatform] to use.
   ///

@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_cookie_bridge/web_view.dart';
 import 'package:flutter_cookie_bridge_example/main.dart';
@@ -50,7 +51,6 @@ class CustomWebViewScreenState extends State<CustomWebViewScreen>
   }
 
   Future<void> handleLogout() async {
-    print("logging out");
     await _webViewManager.logout(context);
   }
 
@@ -63,13 +63,11 @@ class CustomWebViewScreenState extends State<CustomWebViewScreen>
         });
         SharedPreferences prefs = await SharedPreferences.getInstance();
         await prefs.setString('counterResult', counterResult);
-
-        print('Counter fetched: $counterResult');
-      } else {
-        print("Counter can't be fetched");
       }
     } catch (e) {
-      print('Failed to fetch counter: $e');
+      if (kDebugMode) {
+        print('Failed to fetch counter: $e');
+      }
     }
   }
 
@@ -77,10 +75,11 @@ class CustomWebViewScreenState extends State<CustomWebViewScreen>
     try {
       Response? response =
           await _networkManager.get('$baseUrl/api/test/counter');
-      print("Counter response: ${response?.data}");
       return response;
     } catch (e) {
-      print('Error during getCounter request: $e');
+      if (kDebugMode) {
+        print('Error during getCounter request: $e');
+      }
       return null;
     }
   }
@@ -89,11 +88,11 @@ class CustomWebViewScreenState extends State<CustomWebViewScreen>
     try {
       Response? response =
           await _networkManager.get('$baseUrl/api/test/counter-add');
-
-      print("Increment counter response: ${response?.data}");
       return response;
     } catch (e) {
-      print('Error during incrementCounter request: $e');
+      if (kDebugMode) {
+        print('Error during incrementCounter request: $e');
+      }
       return null;
     }
   }
@@ -107,23 +106,15 @@ class CustomWebViewScreenState extends State<CustomWebViewScreen>
         });
         SharedPreferences prefs = await SharedPreferences.getInstance();
         await prefs.setString('addCounterResult', addCounterResult);
-
-        print('Counter incremented: $addCounterResult');
-      } else {
-        print('Failed to increment counter');
       }
     } catch (e) {
-      print('Failed to increment counter: $e');
+      if (kDebugMode) {
+        print('Failed to increment counter: $e');
+      }
     }
   }
 
   Future<void> navigateToCounter() async {
-    print("navigating..");
-    // _webViewManager = WebViewManager(
-    //   url: '$baseUrl/design/counter',
-    //   cookie: widget.cookie,
-    // );
-
     _webViewManager.loadUrl('$baseUrl/design/counter');
   }
 

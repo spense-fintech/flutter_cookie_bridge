@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 import 'session_manager.dart';
 
 class NetworkManager {
@@ -60,7 +61,9 @@ class NetworkManager {
       _storeResponseCookies(response);
       return response;
     } catch (e) {
-      print("Error during network request: $e");
+      if (kDebugMode) {
+        print("Error during network request: $e");
+      }
       return null;
     }
   }
@@ -68,8 +71,6 @@ class NetworkManager {
   void _storeResponseCookies(Response response) {
     if (response.headers['set-cookie'] != null) {
       List<String> cookiesList = response.headers['set-cookie']!;
-
-      print(" cookies response header is : $cookiesList");
 
       List<String> filteredCookies = [];
 
@@ -83,10 +84,7 @@ class NetworkManager {
       }
 
       if (filteredCookies.isNotEmpty) {
-        print("Filtered cookies to be stored: $filteredCookies");
         sessionManager?.saveSessionCookies(filteredCookies);
-      } else {
-        print("No valid cookies to store.");
       }
     }
   }

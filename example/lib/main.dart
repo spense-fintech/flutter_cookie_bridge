@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_cookie_bridge/network_manager.dart';
 import 'package:flutter_cookie_bridge/flutter_cookie_bridge.dart';
@@ -14,6 +15,8 @@ void main() async {
 }
 
 class MyApp extends StatelessWidget {
+  const MyApp({super.key});
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(home: MyHome());
@@ -21,11 +24,13 @@ class MyApp extends StatelessWidget {
 }
 
 class MyHome extends StatefulWidget {
+  const MyHome({super.key});
+
   @override
-  _MyHomeState createState() => _MyHomeState();
+  MyHomeState createState() => MyHomeState();
 }
 
-class _MyHomeState extends State<MyHome> {
+class MyHomeState extends State<MyHome> {
   final String? baseUrl = dotenv.env['BASE_URL'];
 
   final NetworkManager _networkManager = NetworkManager();
@@ -39,9 +44,6 @@ class _MyHomeState extends State<MyHome> {
   Future<void> _checkSession() async {
     Response? response = await _networkManager.get('$baseUrl/api/user/session');
     Map<String, dynamic> responseMap = response?.data;
-
-    print("SessionCheck ${response?.data}");
-
     if (responseMap.containsKey("user")) {
       Navigator.push(
         context,
@@ -50,8 +52,6 @@ class _MyHomeState extends State<MyHome> {
               key: UniqueKey(), url: '$baseUrl/api/user/session'),
         ),
       );
-    } else {
-      print("No session found, staying on login screen...");
     }
   }
 
@@ -64,29 +64,27 @@ class _MyHomeState extends State<MyHome> {
         body: requestBody,
         headers: headers,
       );
-
-      print("Response from login request: ${response?.data}");
       return response;
     } catch (e) {
-      print('Error during login request to get token: $e');
+      if (kDebugMode) {
+        print('Error during login request to get token: $e');
+      }
       return null;
     }
   }
 
   Future<Response?> login(Map<String, dynamic> requestBody) async {
     try {
-      print("Sending token request with body: $requestBody");
-
       Response? response = await _networkManager.request(
         url: '$baseUrl/api/user/token/',
         method: 'POST',
         body: requestBody,
       );
-
-      print("Response from token API: ${response?.data}");
       return response;
     } catch (e) {
-      print('Error during token request: $e');
+      if (kDebugMode) {
+        print('Error during token request: $e');
+      }
       return null;
     }
   }
