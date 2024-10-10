@@ -53,20 +53,11 @@ class CustomWebViewScreenState extends State<CustomWebViewScreen>
     print("Cookies synced to native: $sessionCookies");
   }
 
-  Future<void> handleLogout() async {
-    print("logging out");
+ Future<void> handleLogout() async {
+  print("logging out");
+  await _webViewManager.logout(context);  
+}
 
-    await logout();
-    await cookieBridge.clearSession();
-
-    await CookieManager.instance()
-        .deleteAllCookies(); //TODO Varun try with syncCookies function
-
-      Navigator.of(context).pushNamedAndRemoveUntil('/', (route) => false);
-
-
-    
-  }
 
   Future<void> fetchCounter() async {
     try {
@@ -155,9 +146,9 @@ class CustomWebViewScreenState extends State<CustomWebViewScreen>
     //   cookie: widget.cookie,
     // );
 
-     if (_webViewManager != null) {
-    _webViewManager.loadUrl('$baseUrl/design/counter');
-  }
+    if (_webViewManager != null) {
+      _webViewManager.loadUrl('$baseUrl/design/counter');
+    }
   }
 
   @override
@@ -204,7 +195,9 @@ class CustomWebViewScreenState extends State<CustomWebViewScreen>
                     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                     children: [
                       ElevatedButton(
-                        onPressed: handleLogout,
+                        onPressed: () async {
+                          await handleLogout();
+                        },
                         child: Text('Logout'),
                       ),
                       ElevatedButton(

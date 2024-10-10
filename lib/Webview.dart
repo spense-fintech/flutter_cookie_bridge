@@ -15,13 +15,20 @@ class WebViewManager extends StatefulWidget {
     required this.url,
     required this.cookie,
     this.options,
-  }) : super(key: globalKey);  // Assign the global key here
+  }) : super(key: globalKey);  
 
-  // Method to access the loadUrl method from the state
-  Future<void> loadUrl(String url) async {
-    final state = globalKey.currentState;  // Access the current state
+   Future<void> loadUrl(String url) async {
+    final state = globalKey.currentState;   
     if (state != null) {
-      await state.loadUrl(url);  // Call loadUrl from the state
+      await state.loadUrl(url);  
+    }
+  }
+
+
+     Future<void> logout(BuildContext context) async {
+    final state = globalKey.currentState;
+    if (state != null) {
+      await state.logout(context);  
     }
   }
 
@@ -95,9 +102,15 @@ class _CustomWebViewState extends State<WebViewManager> {
         urlRequest: URLRequest(url: WebUri(url)),
       );
       setState(() {
-        _currentUrl = url;  // Update the current URL and rebuild the widget
+        _currentUrl = url;  
       });
     }
+  }
+
+   Future<void> logout(BuildContext context) async {
+    await _sessionManager.clearSession();
+    await CookieManager.instance().deleteAllCookies();
+    Navigator.of(context).pushNamedAndRemoveUntil('/', (route) => false);
   }
 
   @override
