@@ -6,12 +6,17 @@ class NetworkManager {
   SessionManager? sessionManager;
 
   static final NetworkManager _instance = NetworkManager._internal();
-  late Dio _dio;
 
-  NetworkManager({SessionManager? sessionManager}) {
-    this.sessionManager = sessionManager ?? SessionManager();
-    _dio = Dio();
-  } //important change
+  factory NetworkManager({SessionManager? sessionManager}) {
+    if (sessionManager != null) {
+      _instance.sessionManager = sessionManager;
+    } else {
+      _instance.sessionManager ??= SessionManager();
+    }
+    return _instance;
+  }
+
+  late Dio _dio;
 
   NetworkManager._internal() {
     _dio = Dio();
