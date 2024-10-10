@@ -20,9 +20,13 @@ class FlutterCookieBridge {
     return await _sessionManager.getSessionCookies();
   }
 
-    clearSession() {
-      _sessionManager.clearSession();
-    }
+  clearSession() {
+    _sessionManager.clearSession();
+  }
+
+  //TODO getWebView(options)
+
+
 
   Future<String?> getPlatformVersion() {
     return FlutterCookieBridgePlatform.instance.getPlatformVersion();
