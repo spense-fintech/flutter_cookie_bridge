@@ -1,7 +1,6 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_cookie_bridge/NetworkManager.dart';
-import 'package:flutter_cookie_bridge/SessionManager.dart';
+import 'package:flutter_cookie_bridge/network_manager.dart';
 import 'package:flutter_cookie_bridge/flutter_cookie_bridge.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'custom_webview_screen.dart';

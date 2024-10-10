@@ -1,5 +1,7 @@
-import 'NetworkManager.dart';
-import 'SessionManager.dart';
+import 'package:flutter_cookie_bridge/web_view.dart';
+
+import 'network_manager.dart';
+import 'session_manager.dart';
 import 'flutter_cookie_bridge_platform_interface.dart';
 
 class FlutterCookieBridge {
@@ -15,18 +17,25 @@ class FlutterCookieBridge {
 
   late final NetworkManager networkManager;
   final _sessionManager = SessionManager();
+  late WebView _webView;
 
   Future<List<String>> getSessionCookies() async {
     return await _sessionManager.getSessionCookies();
   }
 
-  clearSession() {
+  void clearSession() {
     _sessionManager.clearSession();
   }
 
-  //TODO getWebView(options)
-
-
+  Future<WebView> getWebView({required String url, Map<String, dynamic>? options}) async {
+    List<String> cookies = await getSessionCookies();
+    String cookie = "";
+    if (cookies.isNotEmpty) {
+      cookie = cookies.join('; ');
+    }
+    _webView = WebView(url: url, cookie: cookie, options: options);
+    return _webView;
+  }
 
   Future<String?> getPlatformVersion() {
     return FlutterCookieBridgePlatform.instance.getPlatformVersion();

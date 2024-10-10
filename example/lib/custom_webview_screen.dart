@@ -1,21 +1,20 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_cookie_bridge/Webview.dart';
+import 'package:flutter_cookie_bridge/web_view.dart';
 import 'package:flutter_cookie_bridge_example/main.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:flutter_cookie_bridge/NetworkManager.dart';
-import 'package:flutter_inappwebview/flutter_inappwebview.dart';
+import 'package:flutter_cookie_bridge/network_manager.dart';
 
 class CustomWebViewScreen extends StatefulWidget {
   final String url;
   final String cookie;
 
-  CustomWebViewScreen({
-    Key? key,
+  const CustomWebViewScreen({
+    super.key,
     required this.url,
     required this.cookie,
-  }) : super(key: key);
+  });
   @override
   CustomWebViewScreenState createState() => CustomWebViewScreenState();
 }
@@ -25,7 +24,7 @@ class CustomWebViewScreenState extends State<CustomWebViewScreen>
   String counterResult = '';
   String addCounterResult = '';
   String? _currentUrl;
-  late WebViewManager _webViewManager;
+  late WebView _webViewManager;
 
   final NetworkManager _networkManager = NetworkManager();
   final String? baseUrl = dotenv.env['BASE_URL'];
@@ -35,8 +34,12 @@ class CustomWebViewScreenState extends State<CustomWebViewScreen>
     super.initState();
     _currentUrl = widget.url;
 
-    _webViewManager = WebViewManager(url: widget.url, cookie: widget.cookie);
+    _initializeWebView();
     _loadSavedCounters();
+  }
+
+  Future<void> _initializeWebView() async {
+    _webViewManager = await cookieBridge.getWebView(url: _currentUrl!);
   }
 
   Future<void> _loadSavedCounters() async {
@@ -146,10 +149,8 @@ class CustomWebViewScreenState extends State<CustomWebViewScreen>
     //   cookie: widget.cookie,
     // );
 
-    if (_webViewManager != null) {
-      _webViewManager.loadUrl('$baseUrl/design/counter');
+    _webViewManager.loadUrl('$baseUrl/design/counter');
     }
-  }
 
   @override
   void dispose() {
