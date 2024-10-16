@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 import 'session_manager.dart';
+import 'LibraryConstants.dart';
 
 class WebView extends StatefulWidget {
   final String url;
@@ -40,6 +41,7 @@ class CustomWebViewState extends State<WebView> {
   InAppWebViewController? _webViewController;
   String? _currentUrl;
   String? _currentCookie;
+  bool _canGoBack = false;
 
   final SessionManager _sessionManager = SessionManager();
 
@@ -59,11 +61,12 @@ class CustomWebViewState extends State<WebView> {
   Future<void> _syncCookiesToWebView() async {
     Uri? uri = Uri.tryParse(_currentUrl!);
     String? domain = uri?.host;
+    print("domain is $domain");
 
     var sessionCookies = await _sessionManager.getSessionCookies();
     if (sessionCookies.isNotEmpty) {
       String cookieString = sessionCookies.join('; ');
-
+      print("cookie String is $cookieString");
       await CookieManager.instance().setCookie(
         url: WebUri(_currentUrl!),
         name: 'cookie',
@@ -88,6 +91,13 @@ class CustomWebViewState extends State<WebView> {
     return InAppWebViewSettings(
       cacheEnabled: widget.options?['cacheEnabled'] ?? true,
       javaScriptEnabled: widget.options?['javaScriptEnabled'] ?? true,
+      domStorageEnabled: true,
+      allowFileAccess: true,
+      geolocationEnabled: true,
+      mediaPlaybackRequiresUserGesture: false,
+      userAgent:
+          "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.36 _Partner_Flutter",
+      mixedContentMode: MixedContentMode.MIXED_CONTENT_ALWAYS_ALLOW,
     );
   }
 
@@ -108,22 +118,76 @@ class CustomWebViewState extends State<WebView> {
     Navigator.of(context).pushNamedAndRemoveUntil('/', (route) => false);
   }
 
+  Future<NavigationActionPolicy?> _shouldOverrideUrlLoading(
+      InAppWebViewController controller,
+      NavigationAction navigationAction) async {
+    //url checking from library constants temporarily
+    print("checking URL whiteListing");
+    Uri uri = navigationAction.request.url!;
+    String url = uri.toString();
+
+    for (String whitelistedUrl in LibraryConstants.whitelistedUrls) {
+      print("checking whitelisted url : $whitelistedUrl");
+      if (url.contains(whitelistedUrl) ||
+          url.contains(LibraryConstants.hostName)) {
+        return NavigationActionPolicy.ALLOW;
+      }
+    }
+
+    if (url.contains("session-expired")) {
+      await logout(context);
+      //Navigator.of(context).pop();
+      print("session expired part is executed");
+      return NavigationActionPolicy.CANCEL;
+    }
+
+    return NavigationActionPolicy.ALLOW;
+  }
+
+  // void _launchURL(String url) async {
+  //   if (await canLaunch(url)) {
+  //     await launch(url);
+  //   } else {
+  //     print('Could not launch $url');
+  //   }
+  // }
+
+  Future<bool> _onWillPop() async {
+    if (_webViewController != null && await _webViewController!.canGoBack()) {
+      await _webViewController!.goBack();
+      return Future.value(false);
+    }
+    return Future.value(true);
+  }
+
   @override
   Widget build(BuildContext context) {
-    return InAppWebView(
-      initialUrlRequest: URLRequest(
-        url: WebUri(_currentUrl!),
-        headers: _buildHeaders(),
+    // ignore: deprecated_member_use
+    return WillPopScope(
+      onWillPop: _onWillPop,
+      child: InAppWebView(
+        initialUrlRequest: URLRequest(
+          url: WebUri(_currentUrl!),
+          headers: _buildHeaders(),
+        ),
+        initialSettings: _buildWebViewSettings(),
+        onWebViewCreated: (controller) async {
+          _webViewController = controller;
+          await _syncCookiesToWebView();
+        },
+        onLoadStop: (controller, url) async {
+          _currentUrl = url?.toString();
+
+          await _syncCookiesToWebView();
+
+          bool canGoBack = await _webViewController?.canGoBack() ?? false;
+
+          setState(() {
+            _canGoBack = canGoBack;
+          });
+        },
+        shouldOverrideUrlLoading: _shouldOverrideUrlLoading,
       ),
-      initialSettings: _buildWebViewSettings(),
-      onWebViewCreated: (controller) async {
-        _webViewController = controller;
-        await _syncCookiesToWebView();
-      },
-      onLoadStop: (controller, url) async {
-        _currentUrl = url?.toString();
-        await _syncCookiesToWebView();
-      },
     );
   }
 }
