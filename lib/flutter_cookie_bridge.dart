@@ -1,7 +1,9 @@
+import 'package:flutter_cookie_bridge/WebViewCallback.dart';
 import 'package:flutter_cookie_bridge/web_view.dart';
 
 import 'network_manager.dart';
 import 'session_manager.dart';
+export 'WebViewCallBack.dart';
 import 'flutter_cookie_bridge_platform_interface.dart';
 
 class FlutterCookieBridge {
@@ -23,14 +25,17 @@ class FlutterCookieBridge {
     _sessionManager.clearSession();
   }
 
-  Future<WebView> getWebView(
-      {required String url, Map<String, dynamic>? options}) async {
+ Future<WebView> getWebView(
+      {required String url, Map<String, dynamic>? options, 
+             WebViewCallbackFunction? callback,
+
+}) async {
     List<String> cookies = await _sessionManager.getSessionCookies();
     String cookie = "";
     if (cookies.isNotEmpty) {
       cookie = cookies.join('; ');
     }
-    _webView = WebView(url: url, cookie: cookie, options: options);
+    _webView = WebView(url: url, cookie: cookie, options: options,onCallback: callback);
     return _webView;
   }
 

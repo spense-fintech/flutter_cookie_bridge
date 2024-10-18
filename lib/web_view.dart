@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_cookie_bridge/WebViewCallback.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 import 'session_manager.dart';
 import 'LibraryConstants.dart';
@@ -7,6 +8,9 @@ class WebView extends StatefulWidget {
   final String url;
   final String cookie;
   final Map<String, dynamic>? options;
+  late final Function(WebViewCallback)? onCallback;
+
+
 
   // GlobalKey to access the state of the WebViewManager
   static final GlobalKey<CustomWebViewState> globalKey =
@@ -17,6 +21,7 @@ class WebView extends StatefulWidget {
     required this.url,
     required this.cookie,
     this.options,
+    this.onCallback,
   }) : super(key: globalKey);
 
   Future<void> loadUrl(String url) async {
@@ -41,7 +46,7 @@ class CustomWebViewState extends State<WebView> {
   InAppWebViewController? _webViewController;
   String? _currentUrl;
   String? _currentCookie;
-  bool _canGoBack = false;
+   bool _canGoBack = false;
 
   final SessionManager _sessionManager = SessionManager();
 
@@ -119,31 +124,39 @@ class CustomWebViewState extends State<WebView> {
   }
 
   Future<NavigationActionPolicy?> _shouldOverrideUrlLoading(
-      InAppWebViewController controller,
-      NavigationAction navigationAction) async {
-    //url checking from library constants temporarily
-    print("checking URL whiteListing");
+    InAppWebViewController controller,
+    NavigationAction navigationAction
+  ) async {
     Uri uri = navigationAction.request.url!;
     String url = uri.toString();
 
     for (String whitelistedUrl in LibraryConstants.whitelistedUrls) {
-      print("checking whitelisted url : $whitelistedUrl");
-      if (url.contains(whitelistedUrl) ||
-          url.contains(LibraryConstants.hostName)) {
+      if (url.contains(whitelistedUrl) || url.contains(LibraryConstants.hostName)) {
         return NavigationActionPolicy.ALLOW;
       }
     }
 
     if (url.contains("session-expired")) {
+      widget.onCallback?.call(WebViewCallback.logout());
       await logout(context);
-      //Navigator.of(context).pop();
-      print("session expired part is executed");
       return NavigationActionPolicy.CANCEL;
+    }
+
+    if (url.contains('/redirect?status=')) {
+      String? status = uri.queryParameters['status'];
+      if (status != null) {
+        widget.onCallback?.call(WebViewCallback.redirect(status));
+        if (await _webViewController!.canGoBack()) {
+          await _webViewController!.goBack();
+        } else {
+          Navigator.of(context).pop();
+        }
+        return NavigationActionPolicy.CANCEL;
+      }
     }
 
     return NavigationActionPolicy.ALLOW;
   }
-
   // void _launchURL(String url) async {
   //   if (await canLaunch(url)) {
   //     await launch(url);
@@ -162,7 +175,6 @@ class CustomWebViewState extends State<WebView> {
 
   @override
   Widget build(BuildContext context) {
-    // ignore: deprecated_member_use
     return WillPopScope(
       onWillPop: _onWillPop,
       child: InAppWebView(
@@ -175,16 +187,28 @@ class CustomWebViewState extends State<WebView> {
           _webViewController = controller;
           await _syncCookiesToWebView();
         },
-        onLoadStop: (controller, url) async {
+         onLoadStop: (controller, url) async {
           _currentUrl = url?.toString();
-
           await _syncCookiesToWebView();
-
           bool canGoBack = await _webViewController?.canGoBack() ?? false;
-
           setState(() {
             _canGoBack = canGoBack;
           });
+
+          if (_currentUrl!.contains('/logout')) {
+            await logout(context);
+          } else if (_currentUrl!.contains('/redirect')) {
+            Uri uri = Uri.parse(_currentUrl!);
+            String? status = uri.queryParameters['status'];
+            if (status != null) {
+              widget.onCallback?.call(WebViewCallback.redirect(status));
+              if (await _webViewController!.canGoBack()) {
+                await _webViewController!.goBack();
+              } else {
+                Navigator.of(context).pop();
+              }
+            }
+          }
         },
         shouldOverrideUrlLoading: _shouldOverrideUrlLoading,
       ),
