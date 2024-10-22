@@ -10,8 +10,6 @@ class WebView extends StatefulWidget {
   final Map<String, dynamic>? options;
   late final Function(WebViewCallback)? onCallback;
 
-
-
   // GlobalKey to access the state of the WebViewManager
   static final GlobalKey<CustomWebViewState> globalKey =
       GlobalKey<CustomWebViewState>();
@@ -46,7 +44,8 @@ class CustomWebViewState extends State<WebView> {
   InAppWebViewController? _webViewController;
   String? _currentUrl;
   String? _currentCookie;
-   bool _canGoBack = false;
+  bool _canGoBack = false;
+  Map<String, String>? _headers;
 
   final SessionManager _sessionManager = SessionManager();
 
@@ -66,30 +65,22 @@ class CustomWebViewState extends State<WebView> {
   Future<void> _syncCookiesToWebView() async {
     Uri? uri = Uri.tryParse(_currentUrl!);
     String? domain = uri?.host;
-    print("domain is $domain");
 
-    var sessionCookies = await _sessionManager.getSessionCookies();
-    if (sessionCookies.isNotEmpty) {
-      String cookieString = sessionCookies.join('; ');
-      print("cookie String is $cookieString");
+    String decodedCookie = Uri.decodeComponent(widget.cookie);
+
+    List<String> cookieParts = decodedCookie.split('=');
+    if (cookieParts.length == 2) {
+      String cookieName = cookieParts[0];
+      String cookieValue = cookieParts[1];
+
       await CookieManager.instance().setCookie(
         url: WebUri(_currentUrl!),
-        name: 'cookie',
-        value: cookieString,
+        name: cookieName,
+        value: cookieValue,
         domain: domain,
         path: '/',
       );
     }
-  }
-
-  Map<String, String> _buildHeaders() {
-    Map<String, String> headers = {};
-    if (widget.options != null && widget.options!['headers'] != null) {
-      headers.addAll(Map<String, String>.from(widget.options!['headers']));
-    }
-
-    headers['Cookie'] = _currentCookie ?? widget.cookie;
-    return headers;
   }
 
   InAppWebViewSettings _buildWebViewSettings() {
@@ -124,14 +115,14 @@ class CustomWebViewState extends State<WebView> {
   }
 
   Future<NavigationActionPolicy?> _shouldOverrideUrlLoading(
-    InAppWebViewController controller,
-    NavigationAction navigationAction
-  ) async {
+      InAppWebViewController controller,
+      NavigationAction navigationAction) async {
     Uri uri = navigationAction.request.url!;
     String url = uri.toString();
 
     for (String whitelistedUrl in LibraryConstants.whitelistedUrls) {
-      if (url.contains(whitelistedUrl) || url.contains(LibraryConstants.hostName)) {
+      if (url.contains(whitelistedUrl) ||
+          url.contains(LibraryConstants.hostName)) {
         return NavigationActionPolicy.ALLOW;
       }
     }
@@ -157,13 +148,6 @@ class CustomWebViewState extends State<WebView> {
 
     return NavigationActionPolicy.ALLOW;
   }
-  // void _launchURL(String url) async {
-  //   if (await canLaunch(url)) {
-  //     await launch(url);
-  //   } else {
-  //     print('Could not launch $url');
-  //   }
-  // }
 
   Future<bool> _onWillPop() async {
     if (_webViewController != null && await _webViewController!.canGoBack()) {
@@ -180,16 +164,18 @@ class CustomWebViewState extends State<WebView> {
       child: InAppWebView(
         initialUrlRequest: URLRequest(
           url: WebUri(_currentUrl!),
-          headers: _buildHeaders(),
+          headers: _headers,
         ),
         initialSettings: _buildWebViewSettings(),
         onWebViewCreated: (controller) async {
           _webViewController = controller;
           await _syncCookiesToWebView();
         },
-         onLoadStop: (controller, url) async {
-          _currentUrl = url?.toString();
+        onLoadStart: (controller, url) async {
           await _syncCookiesToWebView();
+        },
+        onLoadStop: (controller, url) async {
+          _currentUrl = url?.toString();
           bool canGoBack = await _webViewController?.canGoBack() ?? false;
           setState(() {
             _canGoBack = canGoBack;
@@ -199,7 +185,9 @@ class CustomWebViewState extends State<WebView> {
             await logout(context);
           } else if (_currentUrl!.contains('/redirect')) {
             Uri uri = Uri.parse(_currentUrl!);
+
             String? status = uri.queryParameters['status'];
+
             if (status != null) {
               widget.onCallback?.call(WebViewCallback.redirect(status));
               if (await _webViewController!.canGoBack()) {
