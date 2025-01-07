@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter_cookie_bridge/web_view.dart';
 import 'package:flutter_cookie_bridge/web_view_callback.dart';
 
@@ -37,6 +38,7 @@ class FlutterCookieBridge {
       cookie = cookies.join('; ');
     }
     _webView = WebView(
+      key: GlobalKey<CustomWebViewState>(),
       url: url,
       cookie: cookie,
       options: options,

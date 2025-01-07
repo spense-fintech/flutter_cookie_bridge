@@ -12,9 +12,9 @@ class WebView extends StatefulWidget {
   final List<String>? whitelistedUrls;
   final String? hostName;
 
-  // GlobalKey to access the state of the WebViewManager
-  static final GlobalKey<CustomWebViewState> globalKey =
-      GlobalKey<CustomWebViewState>();
+  // // GlobalKey to access the state of the WebViewManager
+  // static final GlobalKey<CustomWebViewState> globalKey =
+  //     GlobalKey<CustomWebViewState>();
 
   WebView({
     Key? key,
@@ -24,17 +24,17 @@ class WebView extends StatefulWidget {
     this.onCallback,
     this.whitelistedUrls,
     this.hostName,
-  }) : super(key: globalKey);
+  }) : super(key: key);
 
   Future<void> loadUrl(String url) async {
-    final state = globalKey.currentState;
+    final state = (key as GlobalKey<CustomWebViewState>?)?.currentState;
     if (state != null) {
       await state.loadUrl(url);
     }
   }
 
   Future<void> logout(BuildContext context) async {
-    final state = globalKey.currentState;
+    final state = (key as GlobalKey<CustomWebViewState>?)?.currentState;
     if (state != null) {
       await state.logout(context);
     }

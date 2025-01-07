@@ -1,12 +1,10 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_cookie_bridge/WebViewCallback.dart';
+import 'package:flutter_cookie_bridge/web_view_callback.dart';
 import 'package:flutter_cookie_bridge/network_manager.dart';
 import 'package:flutter_cookie_bridge/flutter_cookie_bridge.dart';
-import 'package:flutter_cookie_bridge/web_view.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
-import 'custom_webview_screen.dart';
 
 final cookieBridge = FlutterCookieBridge();
 
