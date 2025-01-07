@@ -19,3 +19,7 @@
 ## 1.0.3 - 2025-01-07
 
 - Fixed the static Global Key in WebView
+
+## 1.0.4 - 2025-01-07
+
+- Fixed the WebView SafeArea issue
