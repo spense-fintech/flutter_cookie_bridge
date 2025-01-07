@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_cookie_bridge/WebViewCallback.dart';
+import 'package:flutter_cookie_bridge/web_view_callback.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'session_manager.dart';
@@ -47,8 +47,6 @@ class WebView extends StatefulWidget {
 class CustomWebViewState extends State<WebView> {
   InAppWebViewController? _webViewController;
   String? _currentUrl;
-  String? _currentCookie;
-  bool _canGoBack = false;
   Map<String, String>? _headers;
 
   final SessionManager _sessionManager = SessionManager();
@@ -57,7 +55,6 @@ class CustomWebViewState extends State<WebView> {
   void initState() {
     super.initState();
     _currentUrl = widget.url;
-    _currentCookie = widget.cookie;
   }
 
   @override
@@ -190,10 +187,7 @@ class CustomWebViewState extends State<WebView> {
         },
         onLoadStop: (controller, url) async {
           _currentUrl = url?.toString();
-          bool canGoBack = await _webViewController?.canGoBack() ?? false;
-          setState(() {
-            _canGoBack = canGoBack;
-          });
+          setState(() {});
 
           // if (_currentUrl!.contains('/logout')) {
           //   await logout(context);

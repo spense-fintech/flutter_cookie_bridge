@@ -1,5 +1,5 @@
 import 'package:flutter_cookie_bridge/web_view.dart';
-import 'package:flutter_cookie_bridge/WebViewCallback.dart';
+import 'package:flutter_cookie_bridge/web_view_callback.dart';
 
 import 'network_manager.dart';
 import 'session_manager.dart';
