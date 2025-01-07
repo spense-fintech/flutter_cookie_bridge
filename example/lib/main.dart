@@ -105,8 +105,7 @@ class MyHomeState extends State<MyHome> {
 
   Future<void> _openWebView() async {
     final webView = await cookieBridge.getWebView(
-      url:
-          "https://sbmsmartbankinguat.esbeeyem.com:9443/design",
+      url: "https://sbmsmartbankinguat.esbeeyem.com:9443/design",
       callback: (WebViewCallback action) {
         switch (action.type) {
           case WebViewCallbackType.redirect:
