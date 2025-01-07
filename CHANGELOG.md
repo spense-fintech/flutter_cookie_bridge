@@ -15,3 +15,7 @@
 
 - Fixed non whitelisted url blocking issue
 - Fixed the redirect looping issue
+
+## 1.0.3 - 2025-01-07
+
+- Fixed the static Global Key in WebView
