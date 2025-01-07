@@ -77,7 +77,7 @@ class MyHomeState extends State<MyHome> {
   Future<Response?> login(Map<String, dynamic> requestBody) async {
     try {
       Response? response = await _networkManager.request(
-        url: '$baseUrl/api/user/token/',
+        url: '$baseUrl/api/user/token',
         method: 'POST',
         body: requestBody,
       );
@@ -106,7 +106,7 @@ class MyHomeState extends State<MyHome> {
   Future<void> _openWebView() async {
     final webView = await cookieBridge.getWebView(
       url:
-          "https://sbmsmartbankinguat.esbeeyem.com:9443/banking/sbm/credit_card/CRE",
+          "https://sbmsmartbankinguat.esbeeyem.com:9443/design",
       callback: (WebViewCallback action) {
         switch (action.type) {
           case WebViewCallbackType.redirect:

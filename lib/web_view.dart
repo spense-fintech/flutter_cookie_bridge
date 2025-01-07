@@ -171,43 +171,44 @@ class CustomWebViewState extends State<WebView> {
   @override
   Widget build(BuildContext context) {
     return WillPopScope(
-      onWillPop: _onWillPop,
-      child: InAppWebView(
-        initialUrlRequest: URLRequest(
-          url: WebUri(_currentUrl!),
-          headers: _headers,
-        ),
-        initialSettings: _buildWebViewSettings(),
-        onWebViewCreated: (controller) async {
-          _webViewController = controller;
-          await _syncCookiesToWebView();
-        },
-        onLoadStart: (controller, url) async {
-          await _syncCookiesToWebView();
-        },
-        onLoadStop: (controller, url) async {
-          _currentUrl = url?.toString();
-          setState(() {});
+        onWillPop: _onWillPop,
+        child: SafeArea(
+          child: InAppWebView(
+            initialUrlRequest: URLRequest(
+              url: WebUri(_currentUrl!),
+              headers: _headers,
+            ),
+            initialSettings: _buildWebViewSettings(),
+            onWebViewCreated: (controller) async {
+              _webViewController = controller;
+              await _syncCookiesToWebView();
+            },
+            onLoadStart: (controller, url) async {
+              await _syncCookiesToWebView();
+            },
+            onLoadStop: (controller, url) async {
+              _currentUrl = url?.toString();
+              setState(() {});
 
-          // if (_currentUrl!.contains('/logout')) {
-          //   await logout(context);
-          // } else if (_currentUrl!.contains('/redirect')) {
-          //   Uri uri = Uri.parse(_currentUrl!);
-          //
-          //   String? status = uri.queryParameters['status'];
-          //
-          //   if (status != null) {
-          //     widget.onCallback?.call(WebViewCallback.redirect(status));
-          //     if (await _webViewController!.canGoBack()) {
-          //       await _webViewController!.goBack();
-          //     } else {
-          //       Navigator.of(context).pop();
-          //     }
-          //   }
-          // }
-        },
-        shouldOverrideUrlLoading: _shouldOverrideUrlLoading,
-      ),
-    );
+              // if (_currentUrl!.contains('/logout')) {
+              //   await logout(context);
+              // } else if (_currentUrl!.contains('/redirect')) {
+              //   Uri uri = Uri.parse(_currentUrl!);
+              //
+              //   String? status = uri.queryParameters['status'];
+              //
+              //   if (status != null) {
+              //     widget.onCallback?.call(WebViewCallback.redirect(status));
+              //     if (await _webViewController!.canGoBack()) {
+              //       await _webViewController!.goBack();
+              //     } else {
+              //       Navigator.of(context).pop();
+              //     }
+              //   }
+              // }
+            },
+            shouldOverrideUrlLoading: _shouldOverrideUrlLoading,
+          ),
+        ));
   }
 }

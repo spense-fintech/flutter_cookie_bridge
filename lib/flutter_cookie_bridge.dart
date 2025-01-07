@@ -50,7 +50,7 @@ class FlutterCookieBridge {
     return _webView;
   }
 
-  Future<List<String>> checkSesion() {
+  Future<List<String>> checkSession() {
     return _sessionManager.getSessionCookies();
   }
 
