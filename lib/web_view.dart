@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_cookie_bridge/WebViewCallback.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'session_manager.dart';
 
 class WebView extends StatefulWidget {
@@ -8,7 +9,7 @@ class WebView extends StatefulWidget {
   final String cookie;
   final Map<String, dynamic>? options;
   late final Function(WebViewCallback)? onCallback;
-   final List<String>? whitelistedUrls;  
+  final List<String>? whitelistedUrls;
   final String? hostName;
 
   // GlobalKey to access the state of the WebViewManager
@@ -21,8 +22,8 @@ class WebView extends StatefulWidget {
     required this.cookie,
     this.options,
     this.onCallback,
-     this.whitelistedUrls,  
-    this.hostName, 
+    this.whitelistedUrls,
+    this.hostName,
   }) : super(key: globalKey);
 
   Future<void> loadUrl(String url) async {
@@ -118,45 +119,49 @@ class CustomWebViewState extends State<WebView> {
   }
 
   Future<NavigationActionPolicy?> _shouldOverrideUrlLoading(
-    InAppWebViewController controller,
-    NavigationAction navigationAction) async {
-  Uri uri = navigationAction.request.url!;
-  String url = uri.toString();
+      InAppWebViewController controller,
+      NavigationAction navigationAction) async {
+    Uri uri = navigationAction.request.url!;
+    String url = uri.toString();
 
-  // Get whitelisted URLs and hostname from widget, with fallback to empty values
-  final whitelistedUrls = widget.whitelistedUrls ?? [];
-  final hostName = widget.hostName ?? '';
+    // Get whitelisted URLs and hostname from widget, with fallback to empty values
+    final whitelistedUrls = widget.whitelistedUrls ?? [];
+    final hostName = widget.hostName ?? '';
 
-   if (whitelistedUrls.isNotEmpty) {
+    if (url.contains("session-expired")) {
+      widget.onCallback?.call(WebViewCallback.logout());
+      await logout(context);
+      return NavigationActionPolicy.CANCEL;
+    }
+
+    if (url.contains('/redirect?status=')) {
+      String? status = uri.queryParameters['status'];
+      if (status != null) {
+        widget.onCallback?.call(WebViewCallback.redirect(status));
+        if (await _webViewController!.canGoBack()) {
+          await _webViewController!.goBack();
+        } else {
+          Navigator.of(context).pop();
+        }
+        return NavigationActionPolicy.CANCEL;
+      }
+    }
+
     for (String whitelistedUrl in whitelistedUrls) {
-      if (url.contains(whitelistedUrl) || 
+      if (url.contains(whitelistedUrl) ||
           (hostName.isNotEmpty && url.contains(hostName))) {
         return NavigationActionPolicy.ALLOW;
       }
     }
-  }
 
-  if (url.contains("session-expired")) {
-    widget.onCallback?.call(WebViewCallback.logout());
-    await logout(context);
+    if (await canLaunchUrl(Uri.parse(url))) {
+      await launchUrl(Uri.parse(url));
+    } else {
+      throw 'Could not launch $url';
+    }
+
     return NavigationActionPolicy.CANCEL;
   }
-
-  if (url.contains('/redirect?status=')) {
-    String? status = uri.queryParameters['status'];
-    if (status != null) {
-      widget.onCallback?.call(WebViewCallback.redirect(status));
-      if (await _webViewController!.canGoBack()) {
-        await _webViewController!.goBack();
-      } else {
-        Navigator.of(context).pop();
-      }
-      return NavigationActionPolicy.CANCEL;
-    }
-  }
-
-  return NavigationActionPolicy.ALLOW;
-}
 
   Future<bool> _onWillPop() async {
     if (_webViewController != null && await _webViewController!.canGoBack()) {
