@@ -9,4 +9,9 @@
 - Added whitelisting of URLs from parameters.
 - Fixed cookie synchronization issue.
 - Implemented callback functionality.
-- Added back navigation  
+- Added back navigation
+
+## 1.0.2 - 2025-01-07
+
+- Fixed non whitelisted url blocking issue
+- Fixed the redirect looping issue
