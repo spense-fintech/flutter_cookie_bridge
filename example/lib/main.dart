@@ -107,11 +107,13 @@ class MyHomeState extends State<MyHome> {
 
   Future<void> _openWebView() async {
     final webView = await cookieBridge.getWebView(
-      url: "https://sbmsmartbankinguat.esbeeyem.com:9443/banking/sbm/credit_card/CRE",
+      url:
+          "https://sbmsmartbankinguat.esbeeyem.com:9443/banking/sbm/credit_card/CRE",
       callback: (WebViewCallback action) {
         switch (action.type) {
           case WebViewCallbackType.redirect:
-            print("--------------- Redirect Redirected with status main: ${action.status}");
+            print(
+                "--------------- Redirect Redirected with status main: ${action.status}");
             break;
           case WebViewCallbackType.logout:
             print("--------------- Redirect User logged out main");
