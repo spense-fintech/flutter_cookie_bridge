@@ -23,3 +23,7 @@
 ## 1.0.4 - 2025-01-07
 
 - Fixed the WebView SafeArea issue
+
+## 1.0.5 - 2025-02-04
+
+- Added support for Flutter 3.1.0 and above instead of 3.3.0 and above
