@@ -5,6 +5,7 @@ import 'package:flutter_cookie_bridge/web_view_callback.dart';
 import 'package:flutter_downloader/flutter_downloader.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'session_manager.dart';
 
@@ -115,20 +116,42 @@ class CustomWebViewState extends State<WebView> {
 
   Future<void> _onDownloadStartRequest(
       InAppWebViewController controller, DownloadStartRequest request) async {
-    Directory? tempDir = await getExternalStorageDirectory();
-    print("onDownload ${request.url.toString()}\n ${tempDir!.path}");
 
-    // Enqueue the download with the FlutterDownloader package
-    await FlutterDownloader.enqueue(
-      url: request.url.toString(),
-      fileName: request.suggestedFilename,
-      savedDir: tempDir.path,
-      showNotification: true,
-      requiresStorageNotLow: false,
-      openFileFromNotification: true,
-      saveInPublicStorage: true,
-    );
+    if (await Permission.storage.request().isGranted) {
+
+      Directory? tempDir = await getExternalStorageDirectory();
+      if (tempDir == null) {
+        print("Error: Unable to access external storage directory.");
+        return;
+      }
+
+       String fileName = request.suggestedFilename ?? 'downloaded_file';
+      String filePath = '${tempDir.path}/$fileName';
+      print("Downloading file from: ${request.url} to $filePath");
+
+      try {
+        // Enqueue the download with FlutterDownloader
+        await FlutterDownloader.enqueue(
+          url: request.url.toString(),
+          fileName: fileName,
+          savedDir: tempDir.path,
+          showNotification: true,
+          requiresStorageNotLow: false,
+          openFileFromNotification: true,
+          saveInPublicStorage: true,
+        );
+        print("Download started for file: $fileName");
+
+      } catch (e) {
+        print("Error starting download: ${e.toString()}");
+      }
+    } else {
+      // If permission is denied, request permission
+      print("Storage permission is not granted. Requesting permission...");
+      await Permission.storage.request();
+    }
   }
+
 
 
   Future<void> logout(BuildContext context) async {
