@@ -42,6 +42,7 @@ class MyHomeState extends State<MyHome> {
   }
 
   Future<void> _checkSession() async {
+    print("Checking session");
     Response? response = await _networkManager.get('$baseUrl/api/user/session');
     Map<String, dynamic> responseMap = response?.data;
     if (responseMap.containsKey("user")) {
