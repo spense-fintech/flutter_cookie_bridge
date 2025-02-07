@@ -65,9 +65,14 @@ class NetworkManager {
       }
       _storeResponseCookies(response);
       return response;
-    } catch (e) {
+    } on DioException catch (e) {
       if (kDebugMode) {
         print("Error during network request: $e");
+      }
+      return e.response;
+    } catch (e) {
+      if (kDebugMode) {
+        print("Unexpected error during network request: $e");
       }
       return null;
     }
