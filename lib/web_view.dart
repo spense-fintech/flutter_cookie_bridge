@@ -116,16 +116,14 @@ class CustomWebViewState extends State<WebView> {
 
   Future<void> _onDownloadStartRequest(
       InAppWebViewController controller, DownloadStartRequest request) async {
-
     if (await Permission.storage.request().isGranted) {
-
       Directory? tempDir = await getExternalStorageDirectory();
       if (tempDir == null) {
         print("Error: Unable to access external storage directory.");
         return;
       }
 
-       String fileName = request.suggestedFilename ?? 'downloaded_file';
+      String fileName = request.suggestedFilename ?? 'downloaded_file';
       String filePath = '${tempDir.path}/$fileName';
       print("Downloading file from: ${request.url} to $filePath");
 
@@ -141,7 +139,6 @@ class CustomWebViewState extends State<WebView> {
           saveInPublicStorage: true,
         );
         print("Download started for file: $fileName");
-
       } catch (e) {
         print("Error starting download: ${e.toString()}");
       }
@@ -151,8 +148,6 @@ class CustomWebViewState extends State<WebView> {
       await Permission.storage.request();
     }
   }
-
-
 
   Future<void> logout(BuildContext context) async {
     await _sessionManager.clearSession();
