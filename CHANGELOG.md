@@ -31,3 +31,7 @@
 ## 1.0.6 - 2025-02-07
 
 - Added error response in case of request failures
+
+## 1.0.7 - 2025-02-13
+
+- Added support for accessing permissions in WebView and some minor fixes
