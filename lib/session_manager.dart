@@ -29,9 +29,9 @@ class SessionManager {
   }
 
   Future<void> clearSession() async {
-     try {
+    try {
       SharedPreferences prefs = await SharedPreferences.getInstance();
-       await prefs.remove(_cookieKey);
+      await prefs.remove(_cookieKey);
       await CookieManager.instance().deleteAllCookies();
     } catch (e) {
       debugPrint('Error clearing session: $e');

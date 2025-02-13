@@ -114,26 +114,28 @@ class CustomWebViewState extends State<WebView> {
       );
     }
   }
-  Future<void> logout(BuildContext context) async {
-      try {
-        await _sessionManager.clearSession();
-        await CookieManager.instance().deleteAllCookies();
 
-        WidgetsBinding.instance.addPostFrameCallback((_) async {
-          if (!mounted) {
-            await Future.delayed(Duration(milliseconds: 100));
-          }
-          
-          if (mounted) {
-            await Navigator.of(context).pushNamedAndRemoveUntil('/', (route) => false);
-          } else {
-            widget.onCallback?.call(WebViewCallback.logout());
-          }
-        });
-      } catch (e) {
-        debugPrint('Error during logout: $e');
-      }
+  Future<void> logout(BuildContext context) async {
+    try {
+      await _sessionManager.clearSession();
+      await CookieManager.instance().deleteAllCookies();
+
+      WidgetsBinding.instance.addPostFrameCallback((_) async {
+        if (!mounted) {
+          await Future.delayed(Duration(milliseconds: 100));
+        }
+
+        if (mounted) {
+          await Navigator.of(context)
+              .pushNamedAndRemoveUntil('/', (route) => false);
+        } else {
+          widget.onCallback?.call(WebViewCallback.logout());
+        }
+      });
+    } catch (e) {
+      debugPrint('Error during logout: $e');
     }
+  }
 
   InAppWebViewSettings _buildWebViewSettings() {
     return InAppWebViewSettings(
@@ -392,30 +394,31 @@ class CustomWebViewState extends State<WebView> {
               headers: _headers,
             ),
             initialSettings: _buildWebViewSettings(),
-
             onGeolocationPermissionsShowPrompt: (controller, origin) async {
               bool locationGranted =
                   await _handlePermissionRequest(Permission.location);
               return GeolocationPermissionShowPromptResponse(
                   origin: origin, allow: locationGranted, retain: true);
             },
-
             onPermissionRequest: (controller, resources) async {
               bool granted = true;
 
               for (var resource in resources.resources) {
                 if (resource == PermissionResourceType.CAMERA_AND_MICROPHONE) {
                   granted &= await _handlePermissionRequest(Permission.camera);
-                  granted &= await _handlePermissionRequest(Permission.microphone);
+                  granted &=
+                      await _handlePermissionRequest(Permission.microphone);
                 } else if (resource == PermissionResourceType.MICROPHONE) {
-                  granted &= await _handlePermissionRequest(Permission.microphone);
+                  granted &=
+                      await _handlePermissionRequest(Permission.microphone);
                 } else if (resource == PermissionResourceType.CAMERA) {
                   granted &= await _handlePermissionRequest(Permission.camera);
                 } else if (resource == PermissionResourceType.FILE_READ_WRITE) {
                   granted &= await _handlePermissionRequest(Permission.storage);
                 } else if (resource == PermissionResourceType.NOTIFICATIONS) {
-                  granted &= await _handlePermissionRequest(Permission.notification);
-                } 
+                  granted &=
+                      await _handlePermissionRequest(Permission.notification);
+                }
               }
               return PermissionResponse(
                   resources: resources.resources,
@@ -423,7 +426,6 @@ class CustomWebViewState extends State<WebView> {
                       ? PermissionResponseAction.GRANT
                       : PermissionResponseAction.DENY);
             },
-
             onWebViewCreated: (controller) async {
               _webViewController = controller;
               await _syncCookiesToWebView();
