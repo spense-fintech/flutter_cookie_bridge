@@ -45,12 +45,12 @@ class WebView extends StatefulWidget {
     }
   }
 
-  Future<void> logout(BuildContext context) async {
-    final state = (key as GlobalKey<CustomWebViewState>?)?.currentState;
-    if (state != null) {
-      await state.logout(context);
-    }
-  }
+  // Future<void> logout(BuildContext context) async {
+  //   final state = (key as GlobalKey<CustomWebViewState>?)?.currentState;
+  //   if (state != null) {
+  //     await state.logout(context);
+  //   }
+  // }
 
   @override
   CustomWebViewState createState() => CustomWebViewState();
@@ -89,6 +89,11 @@ class CustomWebViewState extends State<WebView> {
     }
   }
 
+  Future<bool> _handlePermissionRequest(Permission permission) async {
+    PermissionStatus status = await permission.request();
+    return status.isGranted;
+  }
+
   Future<void> _syncCookiesToWebView() async {
     Uri? uri = Uri.tryParse(_currentUrl!);
     String? domain = uri?.host;
@@ -107,8 +112,28 @@ class CustomWebViewState extends State<WebView> {
         domain: domain,
         path: '/',
       );
-     }
+    }
   }
+  Future<void> logout(BuildContext context) async {
+      try {
+        await _sessionManager.clearSession();
+        await CookieManager.instance().deleteAllCookies();
+
+        WidgetsBinding.instance.addPostFrameCallback((_) async {
+          if (!mounted) {
+            await Future.delayed(Duration(milliseconds: 100));
+          }
+          
+          if (mounted) {
+            await Navigator.of(context).pushNamedAndRemoveUntil('/', (route) => false);
+          } else {
+            widget.onCallback?.call(WebViewCallback.logout());
+          }
+        });
+      } catch (e) {
+        debugPrint('Error during logout: $e');
+      }
+    }
 
   InAppWebViewSettings _buildWebViewSettings() {
     return InAppWebViewSettings(
@@ -118,9 +143,19 @@ class CustomWebViewState extends State<WebView> {
       allowFileAccess: true,
       geolocationEnabled: true,
       mediaPlaybackRequiresUserGesture: false,
+      supportMultipleWindows: true,
+      javaScriptCanOpenWindowsAutomatically: true,
       userAgent:
-          "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.36 _Partner_Flutter",
+          "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/537.36",
       mixedContentMode: MixedContentMode.MIXED_CONTENT_ALWAYS_ALLOW,
+      supportZoom: true,
+      useOnLoadResource: true,
+      useShouldInterceptAjaxRequest: true,
+      useShouldInterceptFetchRequest: true,
+      allowsInlineMediaPlayback: true,
+      useWideViewPort: true,
+      databaseEnabled: true,
+      //thirdPartyCookiesEnabled: true,
     );
   }
 
@@ -151,112 +186,115 @@ class CustomWebViewState extends State<WebView> {
   }
 
   String _getFileExtension(String url) {
-  try {
-    final uri = Uri.parse(url);
-    final path = uri.path;
-    
-    // Check if path contains a dot
-    if (path.contains('.')) {
-      final ext = path.substring(path.lastIndexOf('.'));
-      return ext.isNotEmpty ? ext : '.pdf';
+    try {
+      final uri = Uri.parse(url);
+      final path = uri.path;
+
+      // Check if path contains a dot
+      if (path.contains('.')) {
+        final ext = path.substring(path.lastIndexOf('.'));
+        return ext.isNotEmpty ? ext : '.pdf';
+      }
+
+      // If no extension found, check content disposition or default to .pdf
+      return '.pdf';
+    } catch (e) {
+      print('Error getting file extension: $e');
+      return '.pdf';
     }
-    
-    // If no extension found, check content disposition or default to .pdf
-    return '.pdf';
-  } catch (e) {
-    print('Error getting file extension: $e');
-    return '.pdf';
   }
-}
 
   Future<void> _onDownloadStartRequest(
-    InAppWebViewController controller, DownloadStartRequest request) async {
-  try {
-    print('Download started: ${request.url}');
+      InAppWebViewController controller, DownloadStartRequest request) async {
+    try {
+      print('Download started: ${request.url}');
 
-    // Request storage permissions
-    if (!await _requestStoragePermission()) {
-      print('Storage permission denied');
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Storage permission required for downloads')),
-        );
-      }
-      return;
-    }
-
-    // Get cookies for authentication
-    final cookies = await CookieManager.instance().getCookies(url: request.url);
-    final cookieString = cookies.map((c) => '${c.name}=${c.value}').join('; ');
-
-    // Prepare headers
-    final headers = {
-      'Cookie': cookieString,
-      'User-Agent': _buildWebViewSettings().userAgent!,
-    };
-
-    // Create unique filename using timestamp and suggested filename or default
-    final timestamp = DateTime.now().millisecondsSinceEpoch;
-    final suggestedName = request.suggestedFilename ?? 'document';
-    final fileExt = _getFileExtension(request.url.toString());
-    final fileName = '${timestamp}_$suggestedName$fileExt';
-
-    // Get downloads directory
-    final downloadsDir = Directory('/storage/emulated/0/Download');
-    if (!await downloadsDir.exists()) {
-      await downloadsDir.create(recursive: true);
-    }
-    final filePath = '${downloadsDir.path}/$fileName';
-
-    print('Downloading file to: $filePath');
-
-    // Download file using http
-    final response = await http.get(
-      Uri.parse(request.url.toString()),
-      headers: headers,
-    );
-
-    if (response.statusCode == 200) {
-      // Save the file
-      final file = File(filePath);
-      await file.writeAsBytes(response.bodyBytes);
-      print('File saved successfully at: $filePath');
-
-      // Show success message
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('File downloaded successfully')),
-        );
-      }
-
-      // Open the file
-      try {
-        final result = await OpenFile.open(filePath);
-        print('Open file result: ${result.type} - ${result.message}');
-
-        if (result.type != ResultType.done) {
-          throw Exception(result.message);
-        }
-      } catch (e) {
-        print('Error opening file: $e');
+      // Request storage permissions
+      if (!await _requestStoragePermission()) {
+        print('Storage permission denied');
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Error opening file: $e')),
+            const SnackBar(
+                content: Text('Storage permission required for downloads')),
           );
         }
+        return;
       }
-    } else {
-      throw Exception('Failed to download file: ${response.statusCode}');
-    }
-  } catch (e) {
-    print('Download/Open error: $e');
-    if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to download/open file: $e')),
+
+      // Get cookies for authentication
+      final cookies =
+          await CookieManager.instance().getCookies(url: request.url);
+      final cookieString =
+          cookies.map((c) => '${c.name}=${c.value}').join('; ');
+
+      // Prepare headers
+      final headers = {
+        'Cookie': cookieString,
+        'User-Agent': _buildWebViewSettings().userAgent!,
+      };
+
+      // Create unique filename using timestamp and suggested filename or default
+      final timestamp = DateTime.now().millisecondsSinceEpoch;
+      final suggestedName = request.suggestedFilename ?? 'document';
+      final fileExt = _getFileExtension(request.url.toString());
+      final fileName = '${timestamp}_$suggestedName$fileExt';
+
+      // Get downloads directory
+      final downloadsDir = Directory('/storage/emulated/0/Download');
+      if (!await downloadsDir.exists()) {
+        await downloadsDir.create(recursive: true);
+      }
+      final filePath = '${downloadsDir.path}/$fileName';
+
+      print('Downloading file to: $filePath');
+
+      // Download file using http
+      final response = await http.get(
+        Uri.parse(request.url.toString()),
+        headers: headers,
       );
+
+      if (response.statusCode == 200) {
+        // Save the file
+        final file = File(filePath);
+        await file.writeAsBytes(response.bodyBytes);
+        print('File saved successfully at: $filePath');
+
+        // Show success message
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('File downloaded successfully')),
+          );
+        }
+
+        // Open the file
+        try {
+          final result = await OpenFile.open(filePath);
+          print('Open file result: ${result.type} - ${result.message}');
+
+          if (result.type != ResultType.done) {
+            throw Exception(result.message);
+          }
+        } catch (e) {
+          print('Error opening file: $e');
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text('Error opening file: $e')),
+            );
+          }
+        }
+      } else {
+        throw Exception('Failed to download file: ${response.statusCode}');
+      }
+    } catch (e) {
+      print('Download/Open error: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to download/open file: $e')),
+        );
+      }
     }
   }
-}
 
   // String _getFileExtension(String url) {
   //   final uri = Uri.parse(url);
@@ -265,11 +303,11 @@ class CustomWebViewState extends State<WebView> {
   //   return ext.isNotEmpty ? ext : '.pdf';
   // }
 
-  Future<void> logout(BuildContext context) async {
-    await _sessionManager.clearSession();
-    await CookieManager.instance().deleteAllCookies();
-    Navigator.of(context).pushNamedAndRemoveUntil('/', (route) => false);
-  }
+  // Future<void> logout(BuildContext context) async {
+  //   await _sessionManager.clearSession();
+  //   await CookieManager.instance().deleteAllCookies();
+  //   Navigator.of(context).pushNamedAndRemoveUntil('/', (route) => false);
+  // }
 
   Future<NavigationActionPolicy?> _shouldOverrideUrlLoading(
       InAppWebViewController controller,
@@ -354,6 +392,38 @@ class CustomWebViewState extends State<WebView> {
               headers: _headers,
             ),
             initialSettings: _buildWebViewSettings(),
+
+            onGeolocationPermissionsShowPrompt: (controller, origin) async {
+              bool locationGranted =
+                  await _handlePermissionRequest(Permission.location);
+              return GeolocationPermissionShowPromptResponse(
+                  origin: origin, allow: locationGranted, retain: true);
+            },
+
+            onPermissionRequest: (controller, resources) async {
+              bool granted = true;
+
+              for (var resource in resources.resources) {
+                if (resource == PermissionResourceType.CAMERA_AND_MICROPHONE) {
+                  granted &= await _handlePermissionRequest(Permission.camera);
+                  granted &= await _handlePermissionRequest(Permission.microphone);
+                } else if (resource == PermissionResourceType.MICROPHONE) {
+                  granted &= await _handlePermissionRequest(Permission.microphone);
+                } else if (resource == PermissionResourceType.CAMERA) {
+                  granted &= await _handlePermissionRequest(Permission.camera);
+                } else if (resource == PermissionResourceType.FILE_READ_WRITE) {
+                  granted &= await _handlePermissionRequest(Permission.storage);
+                } else if (resource == PermissionResourceType.NOTIFICATIONS) {
+                  granted &= await _handlePermissionRequest(Permission.notification);
+                } 
+              }
+              return PermissionResponse(
+                  resources: resources.resources,
+                  action: granted
+                      ? PermissionResponseAction.GRANT
+                      : PermissionResponseAction.DENY);
+            },
+
             onWebViewCreated: (controller) async {
               _webViewController = controller;
               await _syncCookiesToWebView();

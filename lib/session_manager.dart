@@ -1,4 +1,6 @@
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter_inappwebview/flutter_inappwebview.dart';
+import 'package:flutter/material.dart';
 
 //Can use Encrypted Network Manager..
 class SessionManager {
@@ -27,7 +29,13 @@ class SessionManager {
   }
 
   Future<void> clearSession() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    await prefs.remove(_cookieKey);
+     try {
+      SharedPreferences prefs = await SharedPreferences.getInstance();
+       await prefs.remove(_cookieKey);
+      await CookieManager.instance().deleteAllCookies();
+    } catch (e) {
+      debugPrint('Error clearing session: $e');
+      rethrow;
+    }
   }
 }
