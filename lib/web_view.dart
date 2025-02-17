@@ -13,7 +13,7 @@ import 'package:http/http.dart' as http;
 
 @pragma('vm:entry-point')
 void downloadCallback(String id, int status, int progress) {
-  print('Download callback: id=$id, status=$status, progress=$progress');
+ // print('Download callback: id=$id, status=$status, progress=$progress');
 }
 
 class WebView extends StatefulWidget {
@@ -95,7 +95,7 @@ class CustomWebViewState extends State<WebView> {
 
       print('Downloader initialization completed successfully');
     } catch (e) {
-      print('Downloader initialization failed: $e');
+      debugPrint('Downloader initialization failed: $e');
       setState(() {
         _isDownloaderInitialized = false;
       });
@@ -132,7 +132,7 @@ class CustomWebViewState extends State<WebView> {
       await _sessionManager.clearSession();
       await CookieManager.instance().deleteAllCookies();
 
-      print("logging out from webview");
+      debugPrint("logging out from webview");
 
       WidgetsBinding.instance.addPostFrameCallback((_) async {
         if (!mounted) {
@@ -215,7 +215,7 @@ class CustomWebViewState extends State<WebView> {
       // If no extension found, check content disposition or default to .pdf
       return '.pdf';
     } catch (e) {
-      print('Error getting file extension: $e');
+      debugPrint('Error getting file extension: $e');
       return '.pdf';
     }
   }
@@ -229,11 +229,11 @@ class CustomWebViewState extends State<WebView> {
           throw Exception('Flutter Downloader could not be initialized');
         }
       }
-      print('Download started: ${request.url}');
+      debugPrint('Download started: ${request.url}');
 
       // Request storage permissions
       if (!await _requestStoragePermission()) {
-        print('Storage permission denied');
+        debugPrint('Storage permission denied');
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
@@ -268,7 +268,7 @@ class CustomWebViewState extends State<WebView> {
       }
       final filePath = '${downloadsDir.path}/$fileName';
 
-      print('Downloading file to: $filePath');
+      debugPrint('Downloading file to: $filePath');
 
       // Download file using http
       final response = await http.get(
@@ -280,7 +280,7 @@ class CustomWebViewState extends State<WebView> {
         // Save the file
         final file = File(filePath);
         await file.writeAsBytes(response.bodyBytes);
-        print('File saved successfully at: $filePath');
+        debugPrint('File saved successfully at: $filePath');
 
         // Show success message
         if (mounted) {
@@ -292,13 +292,13 @@ class CustomWebViewState extends State<WebView> {
         // Open the file
         try {
           final result = await OpenFile.open(filePath);
-          print('Open file result: ${result.type} - ${result.message}');
+          debugPrint('Open file result: ${result.type} - ${result.message}');
 
           if (result.type != ResultType.done) {
             throw Exception(result.message);
           }
         } catch (e) {
-          print('Error opening file: $e');
+          debugPrint('Error opening file: $e');
           if (mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(content: Text('Error opening file: $e')),
@@ -309,7 +309,7 @@ class CustomWebViewState extends State<WebView> {
         throw Exception('Failed to download file: ${response.statusCode}');
       }
     } catch (e) {
-      print('Download/Open error: $e');
+      debugPrint('Download/Open error: $e');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Failed to download/open file: $e')),
@@ -340,10 +340,10 @@ class CustomWebViewState extends State<WebView> {
     // Get whitelisted URLs and hostname from widget, with fallback to empty values
     final whitelistedUrls = widget.whitelistedUrls ?? [];
     final hostName = widget.hostName ?? '';
-    print("Navigating to URL: $url");
+    debugPrint("Navigating to URL: $url");
 
     if (!url.contains("/api/user/redirect")) {
-      print("Session expired detected");
+      debugPrint("Session expired detected");
       widget.onCallback?.call(WebViewCallback.logout());
       await logout(context);
       return NavigationActionPolicy.CANCEL;
