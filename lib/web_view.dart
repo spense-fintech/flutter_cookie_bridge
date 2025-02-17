@@ -339,11 +339,21 @@ class CustomWebViewState extends State<WebView> {
     final hostName = widget.hostName ?? '';
     debugPrint("Navigating to URL: $url");
 
-    if (!url.contains("/api/user/redirect")) {
-      debugPrint("Session expired detected");
-      widget.onCallback?.call(WebViewCallback.logout());
-      await logout(context);
-      return NavigationActionPolicy.CANCEL;
+    // if (!url.contains("/redirect")) {
+    //   debugPrint("Session expired detected");
+    //   widget.onCallback?.call(WebViewCallback.logout());
+    //   await logout(context);
+    //   return NavigationActionPolicy.CANCEL;
+    // }
+
+    if (url.contains('/redirect?status=') ||
+        url.contains('/session-expired?status=')) {
+      String? status = uri.queryParameters['status'];
+      if (status != null) {
+        widget.onCallback?.call(WebViewCallback.redirect(status));
+        Navigator.of(context).pop();
+        return NavigationActionPolicy.ALLOW;
+      }
     }
     if (url.contains(".pdf") ||
         url.contains("/statements/") ||
