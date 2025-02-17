@@ -44,3 +44,7 @@
 ## 1.0.9 - 2025-02-17
 
 - Redirect issue fixed
+
+## 1.0.10 - 2025-02-18
+
+- Flutter downloader removed
