@@ -35,3 +35,8 @@
 ## 1.0.7 - 2025-02-13
 
 - Added support for accessing permissions in WebView and some minor fixes
+
+## 1.0.8 - 2025-02-17
+
+- Fixed Flutter Downloader initialization issue
+- Minor fixes
