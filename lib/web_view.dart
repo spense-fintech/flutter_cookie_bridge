@@ -13,7 +13,7 @@ import 'package:http/http.dart' as http;
 
 @pragma('vm:entry-point')
 void downloadCallback(String id, int status, int progress) {
- // print('Download callback: id=$id, status=$status, progress=$progress');
+  // print('Download callback: id=$id, status=$status, progress=$progress');
 }
 
 class WebView extends StatefulWidget {
@@ -84,10 +84,7 @@ class CustomWebViewState extends State<WebView> {
     try {
       WidgetsFlutterBinding.ensureInitialized();
 
-      await FlutterDownloader.initialize(
-          debug: true,
-          ignoreSsl: true
-      );
+      await FlutterDownloader.initialize(debug: true, ignoreSsl: true);
 
       setState(() {
         _isDownloaderInitialized = true;
