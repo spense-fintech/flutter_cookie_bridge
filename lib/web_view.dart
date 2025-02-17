@@ -2,7 +2,7 @@ import 'dart:io';
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_cookie_bridge/web_view_callback.dart';
-import 'package:flutter_downloader/flutter_downloader.dart';
+// import 'package:flutter_downloader/flutter_downloader.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
@@ -11,10 +11,10 @@ import 'session_manager.dart';
 import 'package:open_file_plus/open_file_plus.dart';
 import 'package:http/http.dart' as http;
 
-@pragma('vm:entry-point')
-void downloadCallback(String id, int status, int progress) {
-  // print('Download callback: id=$id, status=$status, progress=$progress');
-}
+// @pragma('vm:entry-point')
+// void downloadCallback(String id, int status, int progress) {
+//   // print('Download callback: id=$id, status=$status, progress=$progress');
+// }
 
 class WebView extends StatefulWidget {
   final String url;
@@ -69,8 +69,8 @@ class CustomWebViewState extends State<WebView> {
     super.initState();
     _currentUrl = widget.url;
     WidgetsBinding.instance.addPostFrameCallback((_) async {
-      await _initializeDownloader();
-      FlutterDownloader.registerCallback(downloadCallback);
+      // await _initializeDownloader();
+      // FlutterDownloader.registerCallback(downloadCallback);
     });
   }
 
@@ -80,24 +80,24 @@ class CustomWebViewState extends State<WebView> {
     super.dispose();
   }
 
-  Future<void> _initializeDownloader() async {
-    try {
-      WidgetsFlutterBinding.ensureInitialized();
-
-      await FlutterDownloader.initialize(debug: true, ignoreSsl: true);
-
-      setState(() {
-        _isDownloaderInitialized = true;
-      });
-
-      print('Downloader initialization completed successfully');
-    } catch (e) {
-      debugPrint('Downloader initialization failed: $e');
-      setState(() {
-        _isDownloaderInitialized = false;
-      });
-    }
-  }
+  // Future<void> _initializeDownloader() async {
+  //   try {
+  //     WidgetsFlutterBinding.ensureInitialized();
+  //
+  //     await FlutterDownloader.initialize(debug: true, ignoreSsl: true);
+  //
+  //     setState(() {
+  //       _isDownloaderInitialized = true;
+  //     });
+  //
+  //     print('Downloader initialization completed successfully');
+  //   } catch (e) {
+  //     debugPrint('Downloader initialization failed: $e');
+  //     setState(() {
+  //       _isDownloaderInitialized = false;
+  //     });
+  //   }
+  // }
 
   Future<bool> _handlePermissionRequest(Permission permission) async {
     PermissionStatus status = await permission.request();
@@ -220,12 +220,12 @@ class CustomWebViewState extends State<WebView> {
   Future<void> _onDownloadStartRequest(
       InAppWebViewController controller, DownloadStartRequest request) async {
     try {
-      if (!_isDownloaderInitialized) {
-        await _initializeDownloader();
-        if (!_isDownloaderInitialized) {
-          throw Exception('Flutter Downloader could not be initialized');
-        }
-      }
+      // if (!_isDownloaderInitialized) {
+      //   await _initializeDownloader();
+      //   if (!_isDownloaderInitialized) {
+      //     throw Exception('Flutter Downloader could not be initialized');
+      //   }
+      // }
       debugPrint('Download started: ${request.url}');
 
       // Request storage permissions

@@ -106,7 +106,7 @@ class MyHomeState extends State<MyHome> {
 
   Future<void> _openWebView() async {
     final webView = await cookieBridge.getWebView(
-      url: "https://sbmsmartbankinguat.esbeeyem.com:9443/design",
+      url: "https://sbmsmartbankinguat.esbeeyem.com:9443/api/user/mock?phone=9821059349&email=isha.raghav@spense.money&module=/banking/sbm/credit_card/CRE&kid=PC7WzxKenHnnR58qkhGH4tt02WH1c1VI&name=Sukesh+Bairy&photo=https://avatars.githubusercontent.com/u/11946127?v=4&redirect_url=https://www.sbmbank.co.in&device_binded=true",
       callback: (WebViewCallback action) {
         switch (action.type) {
           case WebViewCallbackType.redirect:
@@ -127,35 +127,35 @@ class MyHomeState extends State<MyHome> {
   }
 
   Future<void> _loginAndNavigate() async {
-    var loginRequestBody = {
-      "phone": dotenv.env['PHONE'],
-      "email": dotenv.env['EMAIL'],
-      "attributes": {
-        "name": dotenv.env['NAME'],
-        "photo": dotenv.env['PHOTO'],
-        "accountId": dotenv.env['ACCOUNT_ID'],
-      },
-      "module": dotenv.env['MODULE'],
-      "device_binded": dotenv.env['DEVICE_BINDED'],
-    };
+    // var loginRequestBody = {
+    //   "phone": dotenv.env['PHONE'],
+    //   "email": dotenv.env['EMAIL'],
+    //   "attributes": {
+    //     "name": dotenv.env['NAME'],
+    //     "photo": dotenv.env['PHOTO'],
+    //     "accountId": dotenv.env['ACCOUNT_ID'],
+    //   },
+    //   "module": dotenv.env['MODULE'],
+    //   "device_binded": dotenv.env['DEVICE_BINDED'],
+    // };
+    //
+    // var loginResponse = await sso(
+    //   loginRequestBody,
+    //   {
+    //     'Content-Type': 'application/json',
+    //     'username': dotenv.env['USERNAME'],
+    //     'password': dotenv.env['PASSWORD'],
+    //     'kid': dotenv.env['KID'],
+    //   },
+    // );
 
-    var loginResponse = await sso(
-      loginRequestBody,
-      {
-        'Content-Type': 'application/json',
-        'username': dotenv.env['USERNAME'],
-        'password': dotenv.env['PASSWORD'],
-        'kid': dotenv.env['KID'],
-      },
-    );
+    // print(loginResponse);
 
-    print(loginResponse);
+    // if (loginResponse != null && loginResponse.statusCode == 200) {
+    //   var token = loginResponse.data['token'];
+    //   var tokenResponse = await login({"token": token});
 
-    if (loginResponse != null && loginResponse.statusCode == 200) {
-      var token = loginResponse.data['token'];
-      var tokenResponse = await login({"token": token});
-
-      if (tokenResponse != null && tokenResponse.statusCode == 200) {
+      // if (tokenResponse != null && tokenResponse.statusCode == 200) {
         // Navigator.pushReplacement(
         //   context,
         //   MaterialPageRoute(
@@ -164,7 +164,7 @@ class MyHomeState extends State<MyHome> {
         //   ),
         // );
         _openWebView();
-      }
-    }
+      // }
+    // }
   }
 }
