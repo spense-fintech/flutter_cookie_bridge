@@ -106,7 +106,8 @@ class MyHomeState extends State<MyHome> {
 
   Future<void> _openWebView() async {
     final webView = await cookieBridge.getWebView(
-      url: "https://sbmsmartbankinguat.esbeeyem.com:9443/api/user/mock?phone=9821059349&email=isha.raghav@spense.money&module=/banking/sbm/credit_card/CRE&kid=PC7WzxKenHnnR58qkhGH4tt02WH1c1VI&name=Sukesh+Bairy&photo=https://avatars.githubusercontent.com/u/11946127?v=4&redirect_url=https://www.sbmbank.co.in&device_binded=true",
+      url:
+          "https://sbmsmartbankinguat.esbeeyem.com:9443/api/user/mock?phone=9821059349&email=isha.raghav@spense.money&module=/banking/sbm/credit_card/CRE&kid=PC7WzxKenHnnR58qkhGH4tt02WH1c1VI&name=Sukesh+Bairy&photo=https://avatars.githubusercontent.com/u/11946127?v=4&redirect_url=https://www.sbmbank.co.in&device_binded=true",
       callback: (WebViewCallback action) {
         switch (action.type) {
           case WebViewCallbackType.redirect:
@@ -155,16 +156,16 @@ class MyHomeState extends State<MyHome> {
     //   var token = loginResponse.data['token'];
     //   var tokenResponse = await login({"token": token});
 
-      // if (tokenResponse != null && tokenResponse.statusCode == 200) {
-        // Navigator.pushReplacement(
-        //   context,
-        //   MaterialPageRoute(
-        //     builder: (context) => CustomWebViewScreen(
-        //         key: UniqueKey(), url: '$baseUrl/banking/sbm/credit_card/CRE'),
-        //   ),
-        // );
-        _openWebView();
-      // }
+    // if (tokenResponse != null && tokenResponse.statusCode == 200) {
+    // Navigator.pushReplacement(
+    //   context,
+    //   MaterialPageRoute(
+    //     builder: (context) => CustomWebViewScreen(
+    //         key: UniqueKey(), url: '$baseUrl/banking/sbm/credit_card/CRE'),
+    //   ),
+    // );
+    _openWebView();
+    // }
     // }
   }
 }
