@@ -68,9 +68,10 @@ class CustomWebViewState extends State<WebView> {
   void initState() {
     super.initState();
     _currentUrl = widget.url;
-    _initializeDownloader();
-// _flutterDownloader = FlutterDownloader();
-    FlutterDownloader.registerCallback(downloadCallback);
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      await _initializeDownloader();
+      FlutterDownloader.registerCallback(downloadCallback);
+    });
   }
 
   @override
@@ -81,11 +82,23 @@ class CustomWebViewState extends State<WebView> {
 
   Future<void> _initializeDownloader() async {
     try {
-      await FlutterDownloader.initialize(debug: true, ignoreSsl: true);
-      _isDownloaderInitialized = true;
+      WidgetsFlutterBinding.ensureInitialized();
+
+      await FlutterDownloader.initialize(
+          debug: true,
+          ignoreSsl: true
+      );
+
+      setState(() {
+        _isDownloaderInitialized = true;
+      });
+
+      print('Downloader initialization completed successfully');
     } catch (e) {
       print('Downloader initialization failed: $e');
-      _isDownloaderInitialized = false;
+      setState(() {
+        _isDownloaderInitialized = false;
+      });
     }
   }
 
@@ -104,7 +117,6 @@ class CustomWebViewState extends State<WebView> {
     if (cookieParts.length == 2) {
       String cookieName = cookieParts[0];
       String cookieValue = cookieParts[1];
-
       await CookieManager.instance().setCookie(
         url: WebUri(_currentUrl!),
         name: cookieName,
@@ -119,6 +131,8 @@ class CustomWebViewState extends State<WebView> {
     try {
       await _sessionManager.clearSession();
       await CookieManager.instance().deleteAllCookies();
+
+      print("logging out from webview");
 
       WidgetsBinding.instance.addPostFrameCallback((_) async {
         if (!mounted) {
@@ -209,6 +223,12 @@ class CustomWebViewState extends State<WebView> {
   Future<void> _onDownloadStartRequest(
       InAppWebViewController controller, DownloadStartRequest request) async {
     try {
+      if (!_isDownloaderInitialized) {
+        await _initializeDownloader();
+        if (!_isDownloaderInitialized) {
+          throw Exception('Flutter Downloader could not be initialized');
+        }
+      }
       print('Download started: ${request.url}');
 
       // Request storage permissions
@@ -320,25 +340,13 @@ class CustomWebViewState extends State<WebView> {
     // Get whitelisted URLs and hostname from widget, with fallback to empty values
     final whitelistedUrls = widget.whitelistedUrls ?? [];
     final hostName = widget.hostName ?? '';
+    print("Navigating to URL: $url");
 
-    if (url.contains("session-expired")) {
+    if (!url.contains("/api/user/redirect")) {
+      print("Session expired detected");
       widget.onCallback?.call(WebViewCallback.logout());
       await logout(context);
       return NavigationActionPolicy.CANCEL;
-    }
-
-    if (url.contains('/redirect?status=')) {
-      String? status = uri.queryParameters['status'];
-      if (status != null) {
-        widget.onCallback?.call(WebViewCallback.redirect(status));
-        // if (await _webViewController!.canGoBack()) {
-        //   await _webViewController!.goBack();
-        // } else {
-        //   Navigator.of(context).pop();
-        // }
-        Navigator.of(context).pop();
-        return NavigationActionPolicy.ALLOW;
-      }
     }
     if (url.contains(".pdf") ||
         url.contains("/statements/") ||
