@@ -52,3 +52,7 @@
 ## 1.0.11 - 2025-02-18
 
 - Flutter downloader provider removed from Manifest
+
+## 1.0.12 - 2025-02-18
+
+- Added mounted check in the setState
