@@ -56,3 +56,7 @@
 ## 1.0.12 - 2025-02-18
 
 - Added mounted check in the setState
+
+## 1.0.13 - 2025-02-18
+
+- Fixed the navigation issue
