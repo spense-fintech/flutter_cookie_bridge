@@ -353,7 +353,7 @@ class CustomWebViewState extends State<WebView> {
         widget.onCallback?.call(WebViewCallback.redirect(status));
         Navigator.of(context).pop();
         await logout(context);
-        return NavigationActionPolicy.CANCEL;
+        return NavigationActionPolicy.ALLOW;
       }
     }
     if (url.contains(".pdf") ||
@@ -451,9 +451,9 @@ class CustomWebViewState extends State<WebView> {
             },
             onLoadStop: (controller, url) async {
               _currentUrl = url?.toString();
-              if (!mounted) {
-                return;
-              }
+              // if (!mounted) {
+              //   return;
+              // }
               setState(() {});
             },
             onDownloadStartRequest: _onDownloadStartRequest,

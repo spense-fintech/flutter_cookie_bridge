@@ -60,3 +60,7 @@
 ## 1.0.13 - 2025-02-18
 
 - Fixed the navigation issue
+
+## 1.0.14 - 2025-02-18
+
+- Removed mounted check in the setState
