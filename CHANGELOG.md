@@ -64,3 +64,7 @@
 ## 1.0.14 - 2025-02-18
 
 - Removed mounted check in the setState
+
+## 1.0.15 - 2025-02-18
+
+- Removed logout
