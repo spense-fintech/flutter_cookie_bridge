@@ -352,7 +352,8 @@ class CustomWebViewState extends State<WebView> {
       if (status != null) {
         widget.onCallback?.call(WebViewCallback.redirect(status));
         Navigator.of(context).pop();
-        return NavigationActionPolicy.ALLOW;
+        await logout(context);
+        return NavigationActionPolicy.CANCEL;
       }
     }
     if (url.contains(".pdf") ||
