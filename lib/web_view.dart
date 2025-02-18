@@ -450,7 +450,7 @@ class CustomWebViewState extends State<WebView> {
             },
             onLoadStop: (controller, url) async {
               _currentUrl = url?.toString();
-              setState(() {});
+              // setState(() {});
 
               // if (_currentUrl!.contains('/logout')) {
               //   await logout(context);
