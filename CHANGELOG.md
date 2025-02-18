@@ -48,3 +48,7 @@
 ## 1.0.10 - 2025-02-18
 
 - Flutter downloader removed
+
+## 1.0.11 - 2025-02-18
+
+- Flutter downloader provider removed from Manifest
