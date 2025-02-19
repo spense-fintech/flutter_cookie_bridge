@@ -3,6 +3,7 @@ import 'package:device_info_plus/device_info_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_cookie_bridge/web_view_callback.dart';
 // import 'package:flutter_downloader/flutter_downloader.dart';
+// import 'package:flutter_downloader/flutter_downloader.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
@@ -70,8 +71,8 @@ class CustomWebViewState extends State<WebView> {
     super.initState();
     _currentUrl = widget.url;
     WidgetsBinding.instance.addPostFrameCallback((_) async {
-      // await _initializeDownloader();
-      // FlutterDownloader.registerCallback(downloadCallback);
+    //  await _initializeDownloader();
+     // FlutterDownloader.registerCallback(downloadCallback);
     });
   }
 
@@ -81,28 +82,42 @@ class CustomWebViewState extends State<WebView> {
     super.dispose();
   }
 
-  // Future<void> _initializeDownloader() async {
-  //   try {
-  //     WidgetsFlutterBinding.ensureInitialized();
-  //
-  //     await FlutterDownloader.initialize(debug: true, ignoreSsl: true);
-  //
-  //     setState(() {
-  //       _isDownloaderInitialized = true;
-  //     });
-  //
-  //     print('Downloader initialization completed successfully');
-  //   } catch (e) {
-  //     debugPrint('Downloader initialization failed: $e');
-  //     setState(() {
-  //       _isDownloaderInitialized = false;
-  //     });
-  //   }
-  // }
+  Future<void> _initializeDownloader() async {
+    try {
+      WidgetsFlutterBinding.ensureInitialized();
+
+     // await FlutterDownloader.initialize(debug: true, ignoreSsl: true);
+
+      setState(() {
+        _isDownloaderInitialized = true;
+      });
+
+      print('Downloader initialization completed successfully');
+    } catch (e) {
+      debugPrint('Downloader initialization failed: $e');
+      setState(() {
+        _isDownloaderInitialized = false;
+      });
+    }
+  }
+
+  Future<bool> _handleIOSPermission(Permission permission) async {
+    if (Platform.isIOS) {
+      final status = await permission.status;
+      if (status.isDenied) {
+        final result = await permission.request();
+        return result.isGranted;
+      }
+      return status.isGranted;
+    }
+    return true;
+  }
 
   Future<bool> _handlePermissionRequest(Permission permission) async {
-    PermissionStatus status = await permission.request();
-    return status.isGranted;
+    if (Platform.isIOS) {
+      return await _handleIOSPermission(permission);
+    }
+    return await permission.request().isGranted;
   }
 
   Future<void> _syncCookiesToWebView() async {
@@ -150,6 +165,9 @@ class CustomWebViewState extends State<WebView> {
   }
 
   InAppWebViewSettings _buildWebViewSettings() {
+    final String userAgent = Platform.isIOS
+        ? "Mozilla/5.0 (iPhone; CPU iPhone OS 16_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.0 Mobile/15E148 Safari/604.1"
+        : "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/537.36";
     return InAppWebViewSettings(
       cacheEnabled: widget.options?['cacheEnabled'] ?? true,
       javaScriptEnabled: widget.options?['javaScriptEnabled'] ?? true,
@@ -160,7 +178,7 @@ class CustomWebViewState extends State<WebView> {
       supportMultipleWindows: true,
       javaScriptCanOpenWindowsAutomatically: true,
       userAgent:
-          "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/537.36",
+          userAgent,
       mixedContentMode: MixedContentMode.MIXED_CONTENT_ALWAYS_ALLOW,
       supportZoom: true,
       useOnLoadResource: true,
@@ -169,8 +187,12 @@ class CustomWebViewState extends State<WebView> {
       allowsInlineMediaPlayback: true,
       useWideViewPort: true,
       databaseEnabled: true,
+      applicationNameForUserAgent: "Version/16.0 Mobile Safari/604.1",
       //thirdPartyCookiesEnabled: true,
+      iframeAllow: "camera; microphone; geolocation",
+
     );
+
   }
 
   Future<void> loadUrl(String url) async {
@@ -415,10 +437,15 @@ class CustomWebViewState extends State<WebView> {
             ),
             initialSettings: _buildWebViewSettings(),
             onGeolocationPermissionsShowPrompt: (controller, origin) async {
-              bool locationGranted =
-                  await _handlePermissionRequest(Permission.location);
+              bool locationGranted = Platform.isIOS
+                  ? await _handleIOSPermission(Permission.location)
+                  : await _handlePermissionRequest(Permission.location);
+
               return GeolocationPermissionShowPromptResponse(
-                  origin: origin, allow: locationGranted, retain: true);
+                  origin: origin,
+                  allow: locationGranted,
+                  retain: true
+              );
             },
             onPermissionRequest: (controller, resources) async {
               bool granted = true;

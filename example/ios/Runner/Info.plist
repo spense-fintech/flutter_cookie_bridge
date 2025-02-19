@@ -47,5 +47,30 @@
 	<true/>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
+
+	<key>NSAppTransportSecurity</key>
+	<dict>
+		<key>NSAllowsArbitraryLoads</key>
+		<true/>
+		<key>NSAllowsArbitraryLoadsInWebContent</key>
+		<true/>
+	</dict>
+
+	<key>io.flutter.embedded_views_preview</key>
+	<true/>
+
+	<key>NSCameraUsageDescription</key>
+	<string>This app needs camera access for video KYC</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>This app needs microphone access for video KYC</string>
+
+	  <key>NSLocationWhenInUseUsageDescription</key>
+        <string>Location access is required for KYC verification</string>
+        <key>NSLocationAlwaysUsageDescription</key>
+        <string>Location access is required for KYC verification</string>
+
+         <key>NSPhotoLibraryUsageDescription</key>
+        <string>Photo library access is required for document upload</string>
+
 </dict>
 </plist>

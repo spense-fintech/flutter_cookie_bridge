@@ -51,7 +51,7 @@ class CustomWebViewScreenState extends State<CustomWebViewScreen>
   }
 
   Future<void> handleLogout() async {
-    await _webViewManager.logout(context);
+    // _webViewManager.logout(context);
   }
 
   Future<void> fetchCounter() async {
