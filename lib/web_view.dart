@@ -61,6 +61,7 @@ class CustomWebViewState extends State<WebView> {
   String? _currentUrl;
   Map<String, String>? _headers;
   bool _isDownloaderInitialized = false;
+  bool _hasRedirected = false;
 
   final SessionManager _sessionManager = SessionManager();
 
@@ -346,13 +347,15 @@ class CustomWebViewState extends State<WebView> {
     //   return NavigationActionPolicy.CANCEL;
     // }
 
-    if (url.contains('/redirect?status=') ||
-        url.contains('/session-expired?status=')) {
+    if (!_hasRedirected && (url.contains('/redirect?status=') ||
+        url.contains('/session-expired?status='))) {
+      _hasRedirected = true;
       String? status = uri.queryParameters['status'];
       if (status != null) {
         widget.onCallback?.call(WebViewCallback.redirect(status));
         Navigator.of(context).pop();
         // await logout(context);
+
         return NavigationActionPolicy.CANCEL;
       }
     }
