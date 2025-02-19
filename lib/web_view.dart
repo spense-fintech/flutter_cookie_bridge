@@ -71,8 +71,8 @@ class CustomWebViewState extends State<WebView> {
     super.initState();
     _currentUrl = widget.url;
     WidgetsBinding.instance.addPostFrameCallback((_) async {
-    //  await _initializeDownloader();
-     // FlutterDownloader.registerCallback(downloadCallback);
+      //  await _initializeDownloader();
+      // FlutterDownloader.registerCallback(downloadCallback);
     });
   }
 
@@ -86,7 +86,7 @@ class CustomWebViewState extends State<WebView> {
     try {
       WidgetsFlutterBinding.ensureInitialized();
 
-     // await FlutterDownloader.initialize(debug: true, ignoreSsl: true);
+      // await FlutterDownloader.initialize(debug: true, ignoreSsl: true);
 
       setState(() {
         _isDownloaderInitialized = true;
@@ -177,8 +177,7 @@ class CustomWebViewState extends State<WebView> {
       mediaPlaybackRequiresUserGesture: false,
       supportMultipleWindows: true,
       javaScriptCanOpenWindowsAutomatically: true,
-      userAgent:
-          userAgent,
+      userAgent: userAgent,
       mixedContentMode: MixedContentMode.MIXED_CONTENT_ALWAYS_ALLOW,
       supportZoom: true,
       useOnLoadResource: true,
@@ -190,9 +189,7 @@ class CustomWebViewState extends State<WebView> {
       applicationNameForUserAgent: "Version/16.0 Mobile Safari/604.1",
       //thirdPartyCookiesEnabled: true,
       iframeAllow: "camera; microphone; geolocation",
-
     );
-
   }
 
   Future<void> loadUrl(String url) async {
@@ -442,10 +439,7 @@ class CustomWebViewState extends State<WebView> {
                   : await _handlePermissionRequest(Permission.location);
 
               return GeolocationPermissionShowPromptResponse(
-                  origin: origin,
-                  allow: locationGranted,
-                  retain: true
-              );
+                  origin: origin, allow: locationGranted, retain: true);
             },
             onPermissionRequest: (controller, resources) async {
               bool granted = true;
