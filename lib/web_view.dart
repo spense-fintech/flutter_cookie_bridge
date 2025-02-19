@@ -451,7 +451,7 @@ class CustomWebViewState extends State<WebView> {
               await _syncCookiesToWebView();
             },
             onLoadStart: (controller, url) async {
-              await _syncCookiesToWebView();
+              // await _syncCookiesToWebView();
             },
             onLoadStop: (controller, url) async {
               _currentUrl = url?.toString();
