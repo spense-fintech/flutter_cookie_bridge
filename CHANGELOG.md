@@ -76,3 +76,7 @@
 ## 1.0.18 - 2025-02-19
 
 - Fixed multiple redirects
+
+## 1.0.19 - 2025-02-19
+
+- Remove double sync of cookies
