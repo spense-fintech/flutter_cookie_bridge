@@ -352,7 +352,7 @@ class CustomWebViewState extends State<WebView> {
       if (status != null) {
         widget.onCallback?.call(WebViewCallback.redirect(status));
         Navigator.of(context).pop();
-        await logout(context);
+        // await logout(context);
         return NavigationActionPolicy.CANCEL;
       }
     }

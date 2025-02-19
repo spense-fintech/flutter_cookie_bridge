@@ -119,7 +119,7 @@ class MyHomeState extends State<MyHome> {
             break;
         }
       },
-      whitelistedUrls: [],
+      whitelistedUrls: ["https://sbmsmartbankinguat.esbeeyem.com:9443", "razorpay.com"],
       hostName: "https://sbmsmartbankinguat.esbeeyem.com:9443",
     );
     Navigator.of(context).push(MaterialPageRoute(
