@@ -347,8 +347,9 @@ class CustomWebViewState extends State<WebView> {
     //   return NavigationActionPolicy.CANCEL;
     // }
 
-    if (!_hasRedirected && (url.contains('/redirect?status=') ||
-        url.contains('/session-expired?status='))) {
+    if (!_hasRedirected &&
+        (url.contains('/redirect?status=') ||
+            url.contains('/session-expired?status='))) {
       _hasRedirected = true;
       String? status = uri.queryParameters['status'];
       if (status != null) {
