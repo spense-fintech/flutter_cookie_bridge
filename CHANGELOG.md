@@ -68,3 +68,7 @@
 ## 1.0.15 - 2025-02-18
 
 - Removed logout
+
+## 1.0.16 - 2025-02-19
+
+- Removed redundant set state
