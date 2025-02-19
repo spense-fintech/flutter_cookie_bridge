@@ -72,3 +72,7 @@
 ## 1.0.16 - 2025-02-19
 
 - Removed redundant set state
+
+## 1.0.18 - 2025-02-19
+
+- Fixed multiple redirects
