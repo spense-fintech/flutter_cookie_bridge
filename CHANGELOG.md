@@ -80,3 +80,7 @@
 ## 1.0.19 - 2025-02-19
 
 - Remove double sync of cookies
+
+## 1.0.2 - 2025-02-19
+
+- Added webview support for kyc
