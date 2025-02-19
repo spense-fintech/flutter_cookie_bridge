@@ -131,18 +131,18 @@ class CustomWebViewState extends State<WebView> {
 
       debugPrint("logging out from webview");
 
-      WidgetsBinding.instance.addPostFrameCallback((_) async {
-        if (!mounted) {
-          await Future.delayed(Duration(milliseconds: 100));
-        }
-
-        if (mounted) {
-          await Navigator.of(context)
-              .pushNamedAndRemoveUntil('/', (route) => false);
-        } else {
-          widget.onCallback?.call(WebViewCallback.logout());
-        }
-      });
+      // WidgetsBinding.instance.addPostFrameCallback((_) async {
+      //   if (!mounted) {
+      //     await Future.delayed(Duration(milliseconds: 100));
+      //   }
+      //
+      //   if (mounted) {
+      //     await Navigator.of(context)
+      //         .pushNamedAndRemoveUntil('/', (route) => false);
+      //   } else {
+      //     widget.onCallback?.call(WebViewCallback.logout());
+      //   }
+      // });
     } catch (e) {
       debugPrint('Error during logout: $e');
     }
@@ -352,8 +352,8 @@ class CustomWebViewState extends State<WebView> {
       if (status != null) {
         widget.onCallback?.call(WebViewCallback.redirect(status));
         Navigator.of(context).pop();
-        // await logout(context);
-        return NavigationActionPolicy.ALLOW;
+        await logout(context);
+        return NavigationActionPolicy.CANCEL;
       }
     }
     if (url.contains(".pdf") ||
@@ -454,7 +454,7 @@ class CustomWebViewState extends State<WebView> {
               // if (!mounted) {
               //   return;
               // }
-              setState(() {});
+              // setState(() {});
             },
             onDownloadStartRequest: _onDownloadStartRequest,
             shouldOverrideUrlLoading: _shouldOverrideUrlLoading,
