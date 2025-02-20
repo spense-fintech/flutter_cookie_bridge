@@ -3,7 +3,6 @@ import 'package:device_info_plus/device_info_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_cookie_bridge/web_view_callback.dart';
 // import 'package:flutter_downloader/flutter_downloader.dart';
-// import 'package:flutter_downloader/flutter_downloader.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
@@ -104,9 +103,32 @@ class CustomWebViewState extends State<WebView> {
   Future<bool> _handleIOSPermission(Permission permission) async {
     if (Platform.isIOS) {
       final status = await permission.status;
-      if (status.isDenied) {
-        final result = await permission.request();
-        return result.isGranted;
+      if (status.isDenied || status.isRestricted) {
+        // Show alert before requesting permission
+        final shouldRequest = await showDialog(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: Text('Permission Required'),
+            content: Text(
+                'This app needs ${permission.toString()} access to enable video and audio features'),
+            actions: [
+              TextButton(
+                child: Text('Cancel'),
+                onPressed: () => Navigator.pop(context, false),
+              ),
+              TextButton(
+                child: Text('Allow'),
+                onPressed: () => Navigator.pop(context, true),
+              ),
+            ],
+          ),
+        );
+
+        if (shouldRequest == true) {
+          final result = await permission.request();
+          return result.isGranted;
+        }
+        return false;
       }
       return status.isGranted;
     }
@@ -186,9 +208,11 @@ class CustomWebViewState extends State<WebView> {
       allowsInlineMediaPlayback: true,
       useWideViewPort: true,
       databaseEnabled: true,
-      applicationNameForUserAgent: "Version/16.0 Mobile Safari/604.1",
+      applicationNameForUserAgent: "Version/8.0.2 Safari/600.2.5",
       //thirdPartyCookiesEnabled: true,
-      iframeAllow: "camera; microphone; geolocation",
+      iframeAllow: "camera *; microphone *",
+      iframeAllowFullscreen: true,
+      allowsAirPlayForMediaPlayback: true,
     );
   }
 
@@ -234,6 +258,50 @@ class CustomWebViewState extends State<WebView> {
     } catch (e) {
       debugPrint('Error getting file extension: $e');
       return '.pdf';
+    }
+  }
+
+  Future<bool> _getPermissions() async {
+    debugPrint('Starting permission checks...');
+
+    try {
+      // Request permissions explicitly
+      PermissionStatus cameraStatus = await Permission.camera.request();
+      PermissionStatus micStatus = await Permission.microphone.request();
+
+      debugPrint('Permission status - Camera: $cameraStatus, Mic: $micStatus');
+
+      bool isGranted = cameraStatus.isGranted && micStatus.isGranted;
+
+      // If permissions denied, show settings dialog
+      if (!isGranted && mounted) {
+        await showDialog(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: Text('Permissions Required'),
+            content: Text(
+                'Camera and microphone access are needed for video features. Please enable them in settings.'),
+            actions: [
+              TextButton(
+                child: Text('Cancel'),
+                onPressed: () => Navigator.pop(context),
+              ),
+              TextButton(
+                child: Text('Settings'),
+                onPressed: () {
+                  Navigator.pop(context);
+                  openAppSettings();
+                },
+              ),
+            ],
+          ),
+        );
+      }
+
+      return isGranted;
+    } catch (e) {
+      debugPrint('Error getting permissions: $e');
+      return false;
     }
   }
 
@@ -442,6 +510,27 @@ class CustomWebViewState extends State<WebView> {
                   origin: origin, allow: locationGranted, retain: true);
             },
             onPermissionRequest: (controller, resources) async {
+              if (Platform.isIOS) {
+                bool granted = await _getPermissions();
+
+                if (granted) {
+                  await controller.evaluateJavascript(source: """
+                    navigator.mediaDevices.getUserMedia({
+                      audio: true,
+                      video: true
+                    }).catch(function(err) {
+                      console.log('Media permissions error:', err);
+                    });
+                  """);
+                }
+
+                return PermissionResponse(
+                    resources: resources.resources,
+                    action: granted
+                        ? PermissionResponseAction.GRANT
+                        : PermissionResponseAction.DENY);
+              }
+
               bool granted = true;
 
               for (var resource in resources.resources) {
