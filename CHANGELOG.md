@@ -87,4 +87,4 @@
 
 ## 1.0.21 - 2025-02-20
 
-Fixed camera and microphone permission issue in webview for ios
+- Fixed camera and microphone permission issue in webview for ios
