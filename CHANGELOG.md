@@ -81,10 +81,10 @@
 
 - Remove double sync of cookies
 
-## 1.0.2 - 2025-02-19
+## 1.0.20 - 2025-02-19
 
 - Added webview support for kyc
 
 ## 1.0.21 - 2025-02-20
 
-Fixed camera and microphone permission issue in webview for ios
+- Fixed camera and microphone permission issue in webview for ios
