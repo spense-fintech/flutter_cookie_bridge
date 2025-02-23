@@ -2,19 +2,14 @@ import 'dart:io';
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_cookie_bridge/web_view_callback.dart';
-// import 'package:flutter_downloader/flutter_downloader.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'session_manager.dart';
-import 'package:open_file_plus/open_file_plus.dart';
+import 'package:open_filex/open_filex.dart';
 import 'package:http/http.dart' as http;
 
-// @pragma('vm:entry-point')
-// void downloadCallback(String id, int status, int progress) {
-//   // print('Download callback: id=$id, status=$status, progress=$progress');
-// }
 
 class WebView extends StatefulWidget {
   final String url;
@@ -60,7 +55,6 @@ class CustomWebViewState extends State<WebView> {
   InAppWebViewController? _webViewController;
   String? _currentUrl;
   Map<String, String>? _headers;
-  bool _isDownloaderInitialized = false;
   bool _hasRedirected = false;
 
   final SessionManager _sessionManager = SessionManager();
@@ -70,8 +64,6 @@ class CustomWebViewState extends State<WebView> {
     super.initState();
     _currentUrl = widget.url;
     WidgetsBinding.instance.addPostFrameCallback((_) async {
-      //  await _initializeDownloader();
-      // FlutterDownloader.registerCallback(downloadCallback);
     });
   }
 
@@ -81,24 +73,7 @@ class CustomWebViewState extends State<WebView> {
     super.dispose();
   }
 
-  Future<void> _initializeDownloader() async {
-    try {
-      WidgetsFlutterBinding.ensureInitialized();
 
-      // await FlutterDownloader.initialize(debug: true, ignoreSsl: true);
-
-      setState(() {
-        _isDownloaderInitialized = true;
-      });
-
-      print('Downloader initialization completed successfully');
-    } catch (e) {
-      debugPrint('Downloader initialization failed: $e');
-      setState(() {
-        _isDownloaderInitialized = false;
-      });
-    }
-  }
 
   Future<bool> _handleIOSPermission(Permission permission) async {
     if (Platform.isIOS) {
@@ -304,28 +279,65 @@ class CustomWebViewState extends State<WebView> {
       return false;
     }
   }
+  Future<void> _requestIOSStoragePermission(BuildContext context) async {
+    if (await Permission.storage.status.isDenied) {
+      final shouldRequest = await showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: const Text('Permission Required'),
+          content: const Text(
+              'This app needs storage access to save downloaded files.'),
+          actions: [
+            TextButton(
+              child: const Text('Cancel'),
+              onPressed: () => Navigator.pop(context, false),
+            ),
+            TextButton(
+              child: const Text('Allow'),
+              onPressed: () => Navigator.pop(context, true),
+            ),
+          ],
+        ),
+      );
 
-  Future<void> _onDownloadStartRequest(
-      InAppWebViewController controller, DownloadStartRequest request) async {
-    try {
-      // if (!_isDownloaderInitialized) {
-      //   await _initializeDownloader();
-      //   if (!_isDownloaderInitialized) {
-      //     throw Exception('Flutter Downloader could not be initialized');
-      //   }
-      // }
-      debugPrint('Download started: ${request.url}');
+      if (shouldRequest != true) {
+        return;
+      }
 
-      // Request storage permissions
-      if (!await _requestStoragePermission()) {
-        debugPrint('Storage permission denied');
+      final status = await Permission.storage.request();
+      if (!status.isGranted) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-                content: Text('Storage permission required for downloads')),
+            const SnackBar(content: Text('Storage permission required for downloads')),
           );
         }
         return;
+      }
+    }
+  }
+
+    Future<void> _onDownloadStartRequest(
+      InAppWebViewController controller, DownloadStartRequest request) async {
+    try {
+
+      debugPrint('Download started: ${request.url}');
+
+      // Request storage permissions
+
+
+      if (Platform.isIOS) {
+        _requestIOSStoragePermission(context);
+      } else {
+        //  Android permission
+        if (!await _requestStoragePermission()) {
+          debugPrint('Storage permission denied');
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Storage permission required for downloads')),
+            );
+          }
+          return;
+        }
       }
 
       // Get cookies for authentication
@@ -333,11 +345,8 @@ class CustomWebViewState extends State<WebView> {
           await CookieManager.instance().getCookies(url: request.url);
       final cookieString =
           cookies.map((c) => '${c.name}=${c.value}').join('; ');
-
-      // Prepare headers
       final headers = {
         'Cookie': cookieString,
-        'User-Agent': _buildWebViewSettings().userAgent!,
       };
 
       // Create unique filename using timestamp and suggested filename or default
@@ -347,8 +356,11 @@ class CustomWebViewState extends State<WebView> {
       final fileName = '${timestamp}_$suggestedName$fileExt';
 
       // Get downloads directory
-      final downloadsDir = Directory('/storage/emulated/0/Download');
-      if (!await downloadsDir.exists()) {
+      final downloadsDir = Platform.isAndroid
+          ? await getExternalStorageDirectory()
+          : await getApplicationSupportDirectory();
+
+      if (!await downloadsDir!.exists()) {
         await downloadsDir.create(recursive: true);
       }
       final filePath = '${downloadsDir.path}/$fileName';
@@ -376,7 +388,7 @@ class CustomWebViewState extends State<WebView> {
 
         // Open the file
         try {
-          final result = await OpenFile.open(filePath);
+          final result = await OpenFilex.open(filePath);
           debugPrint('Open file result: ${result.type} - ${result.message}');
 
           if (result.type != ResultType.done) {
@@ -403,18 +415,6 @@ class CustomWebViewState extends State<WebView> {
     }
   }
 
-  // String _getFileExtension(String url) {
-  //   final uri = Uri.parse(url);
-  //   final path = uri.path;
-  //   final ext = path.substring(path.lastIndexOf('.'));
-  //   return ext.isNotEmpty ? ext : '.pdf';
-  // }
-
-  // Future<void> logout(BuildContext context) async {
-  //   await _sessionManager.clearSession();
-  //   await CookieManager.instance().deleteAllCookies();
-  //   Navigator.of(context).pushNamedAndRemoveUntil('/', (route) => false);
-  // }
 
   Future<NavigationActionPolicy?> _shouldOverrideUrlLoading(
       InAppWebViewController controller,
@@ -564,11 +564,18 @@ class CustomWebViewState extends State<WebView> {
               // await _syncCookiesToWebView();
             },
             onLoadStop: (controller, url) async {
-              _currentUrl = url?.toString();
-              // if (!mounted) {
-              //   return;
-              // }
-              // setState(() {});
+              await controller.evaluateJavascript(source: """
+              (function() {
+                let originalOpen = window.open;
+                window.open = function(url, target) {
+                  if (target === "_blank" && url) {
+                    window.location.href = url; 
+                  } else {
+                    return originalOpen.apply(this, arguments);
+                  }
+                };
+              })();
+            """);
             },
             onDownloadStartRequest: _onDownloadStartRequest,
             shouldOverrideUrlLoading: _shouldOverrideUrlLoading,

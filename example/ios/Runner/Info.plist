@@ -59,22 +59,49 @@
 	<key>io.flutter.embedded_views_preview</key>
 	<true/>
 
-	<key>NSCameraUsageDescription</key>
-    <string>Camera access is required for video KYC verification</string>
-    <key>NSMicrophoneUsageDescription</key>
-    <string>Microphone access is required for video KYC verification</string>
-    <key>NSMicrophoneUsageDescription.WebView</key>
-    <string>Microphone access is required for video KYC verification in WebView</string>
-    <key>NSLocalNetworkUsageDescription</key>
-    <string>This app needs local network access for WebRTC</string>
+   <key>NSCameraUsageDescription</key>
+     <string>Camera access is required for video KYC verification</string>
+   <key>NSMicrophoneUsageDescription</key>
+     <string>Microphone access is required for video KYC verification</string>
+   <key>NSMicrophoneUsageDescription.WebView</key>
+     <string>Microphone access is required for video KYC verification in WebView</string>
+   <key>NSLocalNetworkUsageDescription</key>
+     <string>This app needs local network access for WebRTC</string>
 
-	  <key>NSLocationWhenInUseUsageDescription</key>
+    <key>NSLocationWhenInUseUsageDescription</key>
         <string>Location access is required for KYC verification</string>
-        <key>NSLocationAlwaysUsageDescription</key>
+    <key>NSLocationAlwaysUsageDescription</key>
         <string>Location access is required for KYC verification</string>
 
-         <key>NSPhotoLibraryUsageDescription</key>
+     <key>NSPhotoLibraryUsageDescription</key>
         <string>Photo library access is required for document upload</string>
+
+    <key>NSDocumentsUsageDescription</key>
+        <string>Access to documents is needed to download and save files</string>
+
+    <key>NSDownloadsUsageDescription</key>
+        <string>Access to downloads is needed to save files</string>
+
+    <key>NSDocumentsFolderUsageDescription</key>
+        <string>Access to document directory is required for downloading files</string>
+
+    <key>NSDownloadsFolderUsageDescription</key>
+        <string>Access to downloads directory is required for saving files</string>
+
+    <key>WKAppBoundDomains</key>
+    <array>
+        <string>razorpay.com</string>
+        <string>api.razorpay.com</string>
+        <string>checkout.razorpay.com</string>
+        <string>sbmsmartbankinguat.esbeeyem.com</string>
+
+    </array>
+    <key>UISupportsDocumentBrowser</key>
+    <true/>
+    <key>LSSupportsOpeningDocumentsInPlace</key>
+    <true/>
+    <key>UIFileSharingEnabled</key>
+    <true/>
 
 </dict>
 </plist>
