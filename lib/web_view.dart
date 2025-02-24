@@ -63,8 +63,8 @@ class CustomWebViewState extends State<WebView> {
   void initState() {
     super.initState();
     _currentUrl = widget.url;
-    WidgetsBinding.instance.addPostFrameCallback((_) async {
-    });
+    // WidgetsBinding.instance.addPostFrameCallback((_) async {
+    // });
   }
 
   @override
