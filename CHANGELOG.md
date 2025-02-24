@@ -88,3 +88,7 @@
 ## 1.0.21 - 2025-02-20
 
 - Fixed camera and microphone permission issue in webview for ios
+
+## 1.0.22 - 2025-02-24
+
+- Added download functionality in webview
