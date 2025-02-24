@@ -438,9 +438,8 @@ class CustomWebViewState extends State<WebView> {
       String? status = uri.queryParameters['status'];
       if (status != null) {
         widget.onCallback?.call(WebViewCallback.redirect(status));
+        await logout(context);
         Navigator.of(context).pop();
-        // await logout(context);
-
         return NavigationActionPolicy.CANCEL;
       }
     }
@@ -463,17 +462,18 @@ class CustomWebViewState extends State<WebView> {
       return NavigationActionPolicy.CANCEL;
     }
 
+    if (await canLaunchUrl(Uri.parse(url))) {
+      await launchUrl(Uri.parse(url));
+    } else {
+      print("Could not launch $url");
+      // Show toast here
+    }
+
     for (String whitelistedUrl in whitelistedUrls) {
       if (url.contains(whitelistedUrl) ||
           (hostName.isNotEmpty && url.contains(hostName))) {
         return NavigationActionPolicy.ALLOW;
       }
-    }
-
-    if (await canLaunchUrl(Uri.parse(url))) {
-      await launchUrl(Uri.parse(url));
-    } else {
-      throw 'Could not launch $url';
     }
 
     return NavigationActionPolicy.CANCEL;
