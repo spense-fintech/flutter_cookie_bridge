@@ -91,4 +91,4 @@
 
 ## 1.0.22 - 2025-02-24
 
-- Added download functionality in webview
+- Added download functionality in webview 
