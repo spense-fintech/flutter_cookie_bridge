@@ -92,3 +92,7 @@
 ## 1.0.22 - 2025-02-24
 
 - Added download functionality in webview 
+
+## 1.0.23 - 2025-02-24
+
+- Added force clear session functionality
