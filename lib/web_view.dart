@@ -10,7 +10,6 @@ import 'session_manager.dart';
 import 'package:open_filex/open_filex.dart';
 import 'package:http/http.dart' as http;
 
-
 class WebView extends StatefulWidget {
   final String url;
   final String cookie;
@@ -72,8 +71,6 @@ class CustomWebViewState extends State<WebView> {
     _webViewController = null;
     super.dispose();
   }
-
-
 
   Future<bool> _handleIOSPermission(Permission permission) async {
     if (Platform.isIOS) {
@@ -279,6 +276,7 @@ class CustomWebViewState extends State<WebView> {
       return false;
     }
   }
+
   Future<void> _requestIOSStoragePermission(BuildContext context) async {
     if (await Permission.storage.status.isDenied) {
       final shouldRequest = await showDialog(
@@ -308,7 +306,8 @@ class CustomWebViewState extends State<WebView> {
       if (!status.isGranted) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Storage permission required for downloads')),
+            const SnackBar(
+                content: Text('Storage permission required for downloads')),
           );
         }
         return;
@@ -316,14 +315,12 @@ class CustomWebViewState extends State<WebView> {
     }
   }
 
-    Future<void> _onDownloadStartRequest(
+  Future<void> _onDownloadStartRequest(
       InAppWebViewController controller, DownloadStartRequest request) async {
     try {
-
       debugPrint('Download started: ${request.url}');
 
       // Request storage permissions
-
 
       if (Platform.isIOS) {
         _requestIOSStoragePermission(context);
@@ -333,7 +330,8 @@ class CustomWebViewState extends State<WebView> {
           debugPrint('Storage permission denied');
           if (mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Storage permission required for downloads')),
+              const SnackBar(
+                  content: Text('Storage permission required for downloads')),
             );
           }
           return;
@@ -414,7 +412,6 @@ class CustomWebViewState extends State<WebView> {
       }
     }
   }
-
 
   Future<NavigationActionPolicy?> _shouldOverrideUrlLoading(
       InAppWebViewController controller,
