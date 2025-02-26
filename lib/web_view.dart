@@ -17,6 +17,7 @@ class WebView extends StatefulWidget {
   late final Function(WebViewCallback)? onCallback;
   final List<String>? whitelistedUrls;
   final String? hostName;
+  final List<String>? iOsBrowserRedirectDomains;
 
 // // GlobalKey to access the state of the WebViewManager
 // static final GlobalKey<CustomWebViewState> globalKey =
@@ -30,6 +31,7 @@ class WebView extends StatefulWidget {
     this.onCallback,
     this.whitelistedUrls,
     this.hostName,
+    this.iOsBrowserRedirectDomains
   }) : super(key: key);
 
   Future<void> loadUrl(String url) async {
@@ -421,8 +423,37 @@ class CustomWebViewState extends State<WebView> {
 
     // Get whitelisted URLs and hostname from widget, with fallback to empty values
     final whitelistedUrls = widget.whitelistedUrls ?? [];
+    final blacklistedUrls = widget.iOsBrowserRedirectDomains ?? [];
     final hostName = widget.hostName ?? '';
     debugPrint("Navigating to URL: $url");
+
+
+    bool isAllowed = whitelistedUrls.any((white) => url.contains(white)) ||
+        (hostName.isNotEmpty && url.contains(hostName));
+
+    // Check if URL is blacklisted
+    bool isBlacklisted = blacklistedUrls.any((black) => url.contains(black));
+
+    if (isAllowed) {
+      if(Platform.isIOS){
+        if (isBlacklisted) {
+          if (await canLaunchUrl(Uri.parse(url))) {
+            await launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication);
+          }
+          return NavigationActionPolicy.CANCEL;
+        }
+      }
+      // URL is only whitelisted - allow in WebView
+      return NavigationActionPolicy.ALLOW;
+    }
+
+    // URL is not whitelisted - open externally
+    if (await canLaunchUrl(Uri.parse(url))) {
+      await launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication);
+    } else {
+      debugPrint("Could not launch $url");
+    }
+    return NavigationActionPolicy.CANCEL;
 
     // if (!url.contains("/redirect")) {
     //   debugPrint("Session expired detected");
@@ -462,21 +493,21 @@ class CustomWebViewState extends State<WebView> {
       return NavigationActionPolicy.CANCEL;
     }
 
-    for (String whitelistedUrl in whitelistedUrls) {
-      if (url.contains(whitelistedUrl) ||
-          (hostName.isNotEmpty && url.contains(hostName))) {
-        return NavigationActionPolicy.ALLOW;
-      }
-    }
-
-    if (await canLaunchUrl(Uri.parse(url))) {
-      await launchUrl(Uri.parse(url));
-    } else {
-      print("Could not launch $url");
-      // Show toast here
-    }
-
-    return NavigationActionPolicy.CANCEL;
+    // for (String whitelistedUrl in whitelistedUrls) {
+    //   if (url.contains(whitelistedUrl) ||
+    //       (hostName.isNotEmpty && url.contains(hostName))) {
+    //     return NavigationActionPolicy.ALLOW;
+    //   }
+    // }
+    //
+    // if (await canLaunchUrl(Uri.parse(url))) {
+    //   await launchUrl(Uri.parse(url));
+    // } else {
+    //   print("Could not launch $url");
+    //   // Show toast here
+    // }
+    //
+    // return NavigationActionPolicy.CANCEL;
   }
 
   Future<bool> _onWillPop() async {

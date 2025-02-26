@@ -31,6 +31,7 @@ class FlutterCookieBridge {
     WebViewCallbackFunction? callback,
     List<String>? whitelistedUrls,
     String? hostName,
+    List<String>? iOsBrowserRedirectDomains
   }) async {
     List<String> cookies = await _sessionManager.getSessionCookies();
     String cookie = "";
@@ -45,6 +46,7 @@ class FlutterCookieBridge {
       onCallback: callback,
       whitelistedUrls: whitelistedUrls,
       hostName: hostName,
+      iOsBrowserRedirectDomains: iOsBrowserRedirectDomains,
     );
 
     return _webView;
