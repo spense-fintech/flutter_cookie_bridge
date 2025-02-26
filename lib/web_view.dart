@@ -23,16 +23,16 @@ class WebView extends StatefulWidget {
 // static final GlobalKey<CustomWebViewState> globalKey =
 //     GlobalKey<CustomWebViewState>();
 
-  WebView({
-    Key? key,
-    required this.url,
-    required this.cookie,
-    this.options,
-    this.onCallback,
-    this.whitelistedUrls,
-    this.hostName,
-    this.iOsBrowserRedirectDomains
-  }) : super(key: key);
+  WebView(
+      {Key? key,
+      required this.url,
+      required this.cookie,
+      this.options,
+      this.onCallback,
+      this.whitelistedUrls,
+      this.hostName,
+      this.iOsBrowserRedirectDomains})
+      : super(key: key);
 
   Future<void> loadUrl(String url) async {
     final state = (key as GlobalKey<CustomWebViewState>?)?.currentState;
@@ -427,7 +427,6 @@ class CustomWebViewState extends State<WebView> {
     final hostName = widget.hostName ?? '';
     debugPrint("Navigating to URL: $url");
 
-
     bool isAllowed = whitelistedUrls.any((white) => url.contains(white)) ||
         (hostName.isNotEmpty && url.contains(hostName));
 
@@ -435,10 +434,11 @@ class CustomWebViewState extends State<WebView> {
     bool isBlacklisted = blacklistedUrls.any((black) => url.contains(black));
 
     if (isAllowed) {
-      if(Platform.isIOS){
+      if (Platform.isIOS) {
         if (isBlacklisted) {
           if (await canLaunchUrl(Uri.parse(url))) {
-            await launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication);
+            await launchUrl(Uri.parse(url),
+                mode: LaunchMode.externalApplication);
           }
           return NavigationActionPolicy.CANCEL;
         }
