@@ -427,33 +427,7 @@ class CustomWebViewState extends State<WebView> {
     final hostName = widget.hostName ?? '';
     debugPrint("Navigating to URL: $url");
 
-    bool isAllowed = whitelistedUrls.any((white) => url.contains(white)) ||
-        (hostName.isNotEmpty && url.contains(hostName));
 
-    // Check if URL is blacklisted
-    bool isBlacklisted = blacklistedUrls.any((black) => url.contains(black));
-
-    if (isAllowed) {
-      if (Platform.isIOS) {
-        if (isBlacklisted) {
-          if (await canLaunchUrl(Uri.parse(url))) {
-            await launchUrl(Uri.parse(url),
-                mode: LaunchMode.externalApplication);
-          }
-          return NavigationActionPolicy.CANCEL;
-        }
-      }
-      // URL is only whitelisted - allow in WebView
-      return NavigationActionPolicy.ALLOW;
-    }
-
-    // URL is not whitelisted - open externally
-    if (await canLaunchUrl(Uri.parse(url))) {
-      await launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication);
-    } else {
-      debugPrint("Could not launch $url");
-    }
-    return NavigationActionPolicy.CANCEL;
 
     // if (!url.contains("/redirect")) {
     //   debugPrint("Session expired detected");
@@ -493,6 +467,34 @@ class CustomWebViewState extends State<WebView> {
       return NavigationActionPolicy.CANCEL;
     }
 
+
+    bool isAllowed = whitelistedUrls.any((white) => url.contains(white)) ||
+        (hostName.isNotEmpty && url.contains(hostName));
+
+    // Check if URL is blacklisted
+    bool isBlacklisted = blacklistedUrls.any((black) => url.contains(black));
+
+    if (isAllowed) {
+      if (Platform.isIOS) {
+        if (isBlacklisted) {
+          if (await canLaunchUrl(Uri.parse(url))) {
+            await launchUrl(Uri.parse(url),
+                mode: LaunchMode.externalApplication);
+          }
+          return NavigationActionPolicy.CANCEL;
+        }
+      }
+      // URL is only whitelisted - allow in WebView
+      return NavigationActionPolicy.ALLOW;
+    }
+
+    // URL is not whitelisted - open externally
+    if (await canLaunchUrl(Uri.parse(url))) {
+      await launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication);
+    } else {
+      debugPrint("Could not launch $url");
+      // Show toast here
+    }
     // for (String whitelistedUrl in whitelistedUrls) {
     //   if (url.contains(whitelistedUrl) ||
     //       (hostName.isNotEmpty && url.contains(hostName))) {
@@ -507,7 +509,7 @@ class CustomWebViewState extends State<WebView> {
     //   // Show toast here
     // }
     //
-    // return NavigationActionPolicy.CANCEL;
+      return NavigationActionPolicy.CANCEL;
   }
 
   Future<bool> _onWillPop() async {
