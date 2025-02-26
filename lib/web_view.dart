@@ -427,8 +427,6 @@ class CustomWebViewState extends State<WebView> {
     final hostName = widget.hostName ?? '';
     debugPrint("Navigating to URL: $url");
 
-
-
     // if (!url.contains("/redirect")) {
     //   debugPrint("Session expired detected");
     //   widget.onCallback?.call(WebViewCallback.logout());
@@ -466,7 +464,6 @@ class CustomWebViewState extends State<WebView> {
       );
       return NavigationActionPolicy.CANCEL;
     }
-
 
     bool isAllowed = whitelistedUrls.any((white) => url.contains(white)) ||
         (hostName.isNotEmpty && url.contains(hostName));
@@ -509,7 +506,7 @@ class CustomWebViewState extends State<WebView> {
     //   // Show toast here
     // }
     //
-      return NavigationActionPolicy.CANCEL;
+    return NavigationActionPolicy.CANCEL;
   }
 
   Future<bool> _onWillPop() async {
