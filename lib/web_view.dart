@@ -17,7 +17,7 @@ class WebView extends StatefulWidget {
   late final Function(WebViewCallback)? onCallback;
   final List<String>? whitelistedUrls;
   final String? hostName;
-  final List<String>? iOsBrowserRedirectDomains;
+  final List<String>? iOSBrowserRedirectDomains;
 
 // // GlobalKey to access the state of the WebViewManager
 // static final GlobalKey<CustomWebViewState> globalKey =
@@ -31,7 +31,7 @@ class WebView extends StatefulWidget {
       this.onCallback,
       this.whitelistedUrls,
       this.hostName,
-      this.iOsBrowserRedirectDomains})
+      this.iOSBrowserRedirectDomains})
       : super(key: key);
 
   Future<void> loadUrl(String url) async {
@@ -423,7 +423,7 @@ class CustomWebViewState extends State<WebView> {
 
     // Get whitelisted URLs and hostname from widget, with fallback to empty values
     final whitelistedUrls = widget.whitelistedUrls ?? [];
-    final blacklistedUrls = widget.iOsBrowserRedirectDomains ?? [];
+    final iOSBrowserRedirectDomain = widget.iOSBrowserRedirectDomains ?? [];
     final hostName = widget.hostName ?? '';
     debugPrint("Navigating to URL: $url");
 
@@ -468,12 +468,12 @@ class CustomWebViewState extends State<WebView> {
     bool isAllowed = whitelistedUrls.any((white) => url.contains(white)) ||
         (hostName.isNotEmpty && url.contains(hostName));
 
-    // Check if URL is blacklisted
-    bool isBlacklisted = blacklistedUrls.any((black) => url.contains(black));
+    // Check if URL is ios redirection url
+    bool isIOSRedirectedUrl = iOSBrowserRedirectDomain.any((black) => url.contains(black));
 
     if (isAllowed) {
       if (Platform.isIOS) {
-        if (isBlacklisted) {
+        if (isIOSRedirectedUrl) {
           if (await canLaunchUrl(Uri.parse(url))) {
             await launchUrl(Uri.parse(url),
                 mode: LaunchMode.externalApplication);
