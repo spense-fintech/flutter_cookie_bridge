@@ -96,3 +96,7 @@
 ## 1.0.23 - 2025-02-24
 
 - Added force clear session functionality
+
+## 1.0.24 - 2025-02-26
+
+- Added iOsBrowserRedirectDomains in webview
