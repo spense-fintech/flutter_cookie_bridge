@@ -211,8 +211,7 @@ class MyHomeState extends State<MyHome> {
         print("Package Info: $packageInfo");
       }
       final bindDeviceToSessionResponse = await _networkManager.request(
-          url:
-              "https://smtplatform.sbmbank.co.in/api/device/sbm/session",
+          url: "https://smtplatform.sbmbank.co.in/api/device/sbm/session",
           method: 'POST',
           body: {
             "manufacturer": deviceInfo["manufacturer"]!,
@@ -240,8 +239,7 @@ class MyHomeState extends State<MyHome> {
     final cookiesBefore = await cookieBridge.checkSession();
     print('Cookies before WebView: $cookiesBefore');
     final webView = await cookieBridge.getWebView(
-      url:
-          "https://smtplatform.sbmbank.co.in/banking/sbm/credit_card/CRE",
+      url: "https://smtplatform.sbmbank.co.in/banking/sbm/credit_card/CRE",
       callback: (WebViewCallback action) {
         switch (action.type) {
           case WebViewCallbackType.redirect:

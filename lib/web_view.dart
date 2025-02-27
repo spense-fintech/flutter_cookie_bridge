@@ -694,7 +694,8 @@ class CustomWebViewState extends State<WebView> {
     );
   }
 
-  void showCustomToast(BuildContext context, String message, {Duration duration = const Duration(seconds: 4)}) {
+  void showCustomToast(BuildContext context, String message,
+      {Duration duration = const Duration(seconds: 4)}) {
     final overlayState = Overlay.of(context);
     final overlayEntry = OverlayEntry(
       builder: (context) => Positioned(
