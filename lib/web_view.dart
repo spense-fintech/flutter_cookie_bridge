@@ -258,7 +258,7 @@ class CustomWebViewState extends State<WebView> {
       iframeAllow: "camera *; microphone *",
       iframeAllowFullscreen: true,
       allowsAirPlayForMediaPlayback: true,
-      disableInputAccessoryView:true,
+      disableInputAccessoryView: true,
     );
   }
 
@@ -607,14 +607,14 @@ class CustomWebViewState extends State<WebView> {
                 bool locationGranted = Platform.isIOS
                     ? await _handleIOSPermission(Permission.location)
                     : await _handlePermissionRequest(Permission.location);
-      
+
                 return GeolocationPermissionShowPromptResponse(
                     origin: origin, allow: locationGranted, retain: true);
               },
               onPermissionRequest: (controller, resources) async {
                 if (Platform.isIOS) {
                   bool granted = await _getPermissions();
-      
+
                   if (granted) {
                     await controller.evaluateJavascript(source: """
                     navigator.mediaDevices.getUserMedia({
@@ -625,28 +625,33 @@ class CustomWebViewState extends State<WebView> {
                     });
                   """);
                   }
-      
+
                   return PermissionResponse(
                       resources: resources.resources,
                       action: granted
                           ? PermissionResponseAction.GRANT
                           : PermissionResponseAction.DENY);
                 }
-      
+
                 bool granted = true;
-      
+
                 for (var resource in resources.resources) {
-                  if (resource == PermissionResourceType.CAMERA_AND_MICROPHONE) {
-                    granted &= await _handlePermissionRequest(Permission.camera);
+                  if (resource ==
+                      PermissionResourceType.CAMERA_AND_MICROPHONE) {
+                    granted &=
+                        await _handlePermissionRequest(Permission.camera);
                     granted &=
                         await _handlePermissionRequest(Permission.microphone);
                   } else if (resource == PermissionResourceType.MICROPHONE) {
                     granted &=
                         await _handlePermissionRequest(Permission.microphone);
                   } else if (resource == PermissionResourceType.CAMERA) {
-                    granted &= await _handlePermissionRequest(Permission.camera);
-                  } else if (resource == PermissionResourceType.FILE_READ_WRITE) {
-                    granted &= await _handlePermissionRequest(Permission.storage);
+                    granted &=
+                        await _handlePermissionRequest(Permission.camera);
+                  } else if (resource ==
+                      PermissionResourceType.FILE_READ_WRITE) {
+                    granted &=
+                        await _handlePermissionRequest(Permission.storage);
                   } else if (resource == PermissionResourceType.NOTIFICATIONS) {
                     granted &=
                         await _handlePermissionRequest(Permission.notification);
