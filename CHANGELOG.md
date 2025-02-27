@@ -106,3 +106,7 @@
 - Added cookie handling in webview
 - Added cookie sync functionality
 - Added fixes for webview
+
+## 1.1.1 - 2025-02-27
+
+- Added custom toast message
