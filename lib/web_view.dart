@@ -187,6 +187,7 @@ class CustomWebViewState extends State<WebView> {
       iframeAllow: "camera *; microphone *",
       iframeAllowFullscreen: true,
       allowsAirPlayForMediaPlayback: true,
+      disableInputAccessoryView:true,
     );
   }
 
@@ -519,29 +520,31 @@ class CustomWebViewState extends State<WebView> {
 
   @override
   Widget build(BuildContext context) {
-    return WillPopScope(
-        onWillPop: _onWillPop,
-        child: SafeArea(
-          child: InAppWebView(
-            initialUrlRequest: URLRequest(
-              url: WebUri(_currentUrl!),
-              headers: _headers,
-            ),
-            initialSettings: _buildWebViewSettings(),
-            onGeolocationPermissionsShowPrompt: (controller, origin) async {
-              bool locationGranted = Platform.isIOS
-                  ? await _handleIOSPermission(Permission.location)
-                  : await _handlePermissionRequest(Permission.location);
-
-              return GeolocationPermissionShowPromptResponse(
-                  origin: origin, allow: locationGranted, retain: true);
-            },
-            onPermissionRequest: (controller, resources) async {
-              if (Platform.isIOS) {
-                bool granted = await _getPermissions();
-
-                if (granted) {
-                  await controller.evaluateJavascript(source: """
+    return Scaffold(
+      resizeToAvoidBottomInset: true,
+      body: WillPopScope(
+          onWillPop: _onWillPop,
+          child: SafeArea(
+            child: InAppWebView(
+              initialUrlRequest: URLRequest(
+                url: WebUri(_currentUrl!),
+                headers: _headers,
+              ),
+              initialSettings: _buildWebViewSettings(),
+              onGeolocationPermissionsShowPrompt: (controller, origin) async {
+                bool locationGranted = Platform.isIOS
+                    ? await _handleIOSPermission(Permission.location)
+                    : await _handlePermissionRequest(Permission.location);
+      
+                return GeolocationPermissionShowPromptResponse(
+                    origin: origin, allow: locationGranted, retain: true);
+              },
+              onPermissionRequest: (controller, resources) async {
+                if (Platform.isIOS) {
+                  bool granted = await _getPermissions();
+      
+                  if (granted) {
+                    await controller.evaluateJavascript(source: """
                     navigator.mediaDevices.getUserMedia({
                       audio: true,
                       video: true
@@ -549,64 +552,65 @@ class CustomWebViewState extends State<WebView> {
                       console.log('Media permissions error:', err);
                     });
                   """);
+                  }
+      
+                  return PermissionResponse(
+                      resources: resources.resources,
+                      action: granted
+                          ? PermissionResponseAction.GRANT
+                          : PermissionResponseAction.DENY);
                 }
-
+      
+                bool granted = true;
+      
+                for (var resource in resources.resources) {
+                  if (resource == PermissionResourceType.CAMERA_AND_MICROPHONE) {
+                    granted &= await _handlePermissionRequest(Permission.camera);
+                    granted &=
+                        await _handlePermissionRequest(Permission.microphone);
+                  } else if (resource == PermissionResourceType.MICROPHONE) {
+                    granted &=
+                        await _handlePermissionRequest(Permission.microphone);
+                  } else if (resource == PermissionResourceType.CAMERA) {
+                    granted &= await _handlePermissionRequest(Permission.camera);
+                  } else if (resource == PermissionResourceType.FILE_READ_WRITE) {
+                    granted &= await _handlePermissionRequest(Permission.storage);
+                  } else if (resource == PermissionResourceType.NOTIFICATIONS) {
+                    granted &=
+                        await _handlePermissionRequest(Permission.notification);
+                  }
+                }
                 return PermissionResponse(
                     resources: resources.resources,
                     action: granted
                         ? PermissionResponseAction.GRANT
                         : PermissionResponseAction.DENY);
-              }
-
-              bool granted = true;
-
-              for (var resource in resources.resources) {
-                if (resource == PermissionResourceType.CAMERA_AND_MICROPHONE) {
-                  granted &= await _handlePermissionRequest(Permission.camera);
-                  granted &=
-                      await _handlePermissionRequest(Permission.microphone);
-                } else if (resource == PermissionResourceType.MICROPHONE) {
-                  granted &=
-                      await _handlePermissionRequest(Permission.microphone);
-                } else if (resource == PermissionResourceType.CAMERA) {
-                  granted &= await _handlePermissionRequest(Permission.camera);
-                } else if (resource == PermissionResourceType.FILE_READ_WRITE) {
-                  granted &= await _handlePermissionRequest(Permission.storage);
-                } else if (resource == PermissionResourceType.NOTIFICATIONS) {
-                  granted &=
-                      await _handlePermissionRequest(Permission.notification);
-                }
-              }
-              return PermissionResponse(
-                  resources: resources.resources,
-                  action: granted
-                      ? PermissionResponseAction.GRANT
-                      : PermissionResponseAction.DENY);
-            },
-            onWebViewCreated: (controller) async {
-              _webViewController = controller;
-              await _syncCookiesToWebView();
-            },
-            onLoadStart: (controller, url) async {
-              // await _syncCookiesToWebView();
-            },
-            onLoadStop: (controller, url) async {
-              await controller.evaluateJavascript(source: """
-              (function() {
-                let originalOpen = window.open;
-                window.open = function(url, target) {
-                  if (target === "_blank" && url) {
-                    window.location.href = url; 
-                  } else {
-                    return originalOpen.apply(this, arguments);
-                  }
-                };
-              })();
-            """);
-            },
-            onDownloadStartRequest: _onDownloadStartRequest,
-            shouldOverrideUrlLoading: _shouldOverrideUrlLoading,
-          ),
-        ));
+              },
+              onWebViewCreated: (controller) async {
+                _webViewController = controller;
+                await _syncCookiesToWebView();
+              },
+              onLoadStart: (controller, url) async {
+                // await _syncCookiesToWebView();
+              },
+              onLoadStop: (controller, url) async {
+                await controller.evaluateJavascript(source: """
+                (function() {
+                  let originalOpen = window.open;
+                  window.open = function(url, target) {
+                    if (target === "_blank" && url) {
+                      window.location.href = url; 
+                    } else {
+                      return originalOpen.apply(this, arguments);
+                    }
+                  };
+                })();
+              """);
+              },
+              onDownloadStartRequest: _onDownloadStartRequest,
+              shouldOverrideUrlLoading: _shouldOverrideUrlLoading,
+            ),
+          )),
+    );
   }
 }
