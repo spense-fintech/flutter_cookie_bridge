@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_cookie_bridge/custom_toast.dart';
 import 'package:flutter_cookie_bridge/web_view_callback.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 import 'package:path_provider/path_provider.dart';
@@ -564,6 +565,8 @@ class CustomWebViewState extends State<WebView> {
     } else {
       debugPrint("Could not launch $url");
       // Show toast here
+      showCustomToast(context, "No application found to open this link");
+      return NavigationActionPolicy.CANCEL;
     }
     // for (String whitelistedUrl in whitelistedUrls) {
     //   if (url.contains(whitelistedUrl) ||
@@ -689,5 +692,22 @@ class CustomWebViewState extends State<WebView> {
             ),
           )),
     );
+  }
+
+  void showCustomToast(BuildContext context, String message, {Duration duration = const Duration(seconds: 4)}) {
+    final overlayState = Overlay.of(context);
+    final overlayEntry = OverlayEntry(
+      builder: (context) => Positioned(
+        bottom: MediaQuery.of(context).viewInsets.bottom + 50,
+        width: MediaQuery.of(context).size.width,
+        child: CustomToast(message: message),
+      ),
+    );
+
+    overlayState.insert(overlayEntry);
+
+    Future.delayed(duration, () {
+      overlayEntry.remove();
+    });
   }
 }
