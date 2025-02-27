@@ -100,3 +100,9 @@
 ## 1.0.24 - 2025-02-26
 
 - Added iOsBrowserRedirectDomains in webview
+
+## 1.1.0 - 2025-02-27
+
+- Added cookie handling in webview
+- Added cookie sync functionality
+- Added fixes for webview
