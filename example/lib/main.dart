@@ -1,10 +1,15 @@
+import 'dart:io';
+
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_cookie_bridge/web_view_callback.dart';
 import 'package:flutter_cookie_bridge/network_manager.dart';
 import 'package:flutter_cookie_bridge/flutter_cookie_bridge.dart';
+import 'package:flutter_cookie_bridge_example/DeviceInfoManager.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:dart_jsonwebtoken/dart_jsonwebtoken.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 
 final cookieBridge = FlutterCookieBridge();
 
@@ -34,6 +39,7 @@ class MyHomeState extends State<MyHome> {
   final String? baseUrl = dotenv.env['BASE_URL'];
 
   final NetworkManager _networkManager = NetworkManager();
+  final DeviceInfoManager _deviceInfoManager = DeviceInfoManager();
 
   @override
   void initState() {
@@ -46,13 +52,6 @@ class MyHomeState extends State<MyHome> {
     Response? response = await _networkManager.get('$baseUrl/api/user/session');
     Map<String, dynamic> responseMap = response?.data;
     if (responseMap.containsKey("user")) {
-      // Navigator.push(
-      //   context,
-      //   MaterialPageRoute(
-      //     builder: (context) => CustomWebViewScreen(
-      //         key: UniqueKey(), url: '$baseUrl/api/user/session'),
-      //   ),
-      // );
       _openWebView();
     }
   }
@@ -104,10 +103,145 @@ class MyHomeState extends State<MyHome> {
     );
   }
 
+  Future<String> createToken() async {
+    final String clientId = dotenv.env['KID']!;
+
+    final Map<String, Object> headers = {
+      'kid': clientId,
+      'typ': 'JWT',
+      'alg': 'HS256',
+    };
+
+    final Map<String, String> attributes = {
+      'name': "Varun Jha",
+      'photo': "",
+    };
+    const Duration expirationDuration = Duration(milliseconds: 300000);
+    final clientSecret = dotenv.env['CLIENT_SECRET'];
+    final jwt = JWT(
+      {
+        'email': "jha.varun6@gmail.com",
+        'phone': "7979945216",
+        'attributes': attributes,
+        'module': "/banking/sbm/credit_card/CRE",
+      },
+      header: headers,
+    );
+
+    String token = await jwt.sign(
+      SecretKey(clientSecret!),
+      expiresIn: expirationDuration,
+    );
+
+    print("Token generated FROM client side is: $token");
+
+    return token;
+  }
+
+  Future<void> open(BuildContext context, String module, String token,
+      WebViewCallbackFunction? callback) async {
+    try {
+      String bank = "";
+
+      if (module.contains("banking/")) {
+        int startIndex = module.indexOf("banking/") + "banking/".length;
+        String temp = module.substring(startIndex);
+        int endIndex = temp.indexOf("/");
+        bank = endIndex == -1 ? temp : temp.substring(0, endIndex);
+      }
+      await _loginAndNavigateToWebView(module, bank, context, token, callback!);
+    } catch (e) {
+      debugPrint('Error opening webview: $e');
+      rethrow;
+    }
+  }
+
+  Future<void> _loginAndNavigateToWebView(
+    String module,
+    String bank,
+    BuildContext context,
+    String token,
+    WebViewCallbackFunction callback,
+  ) async {
+    try {
+      await cookieBridge.clearSession();
+      final tokenResponse = await _networkManager.request(
+          url: "https://sbmsmartbankinguat.esbeeyem.com:9443/api/user/token",
+          method: 'POST',
+          body: {"token": token});
+
+      print("token Response is: $tokenResponse");
+
+      if (tokenResponse?.statusCode == 200 &&
+          tokenResponse?.data['code'] == "USER_LOGIN_SUCCESS") {
+        final cookies = await cookieBridge.checkSession();
+
+        if (cookies.isEmpty) {
+          throw Exception('Session not established after login');
+        }
+
+        await _checkDeviceBinding(context, bank, module, callback);
+      } else {
+        debugPrint('Error during login: $tokenResponse');
+        // rethrow;
+      }
+    } catch (e) {
+      debugPrint('Unexpected error: $e');
+      rethrow;
+    }
+  }
+
+  Future<void> _checkDeviceBinding(BuildContext context, String bank,
+      String url, WebViewCallbackFunction callback) async {
+    // if (LibraryConstants.deviceBindingEnabled) {
+    //   // TODO Build the device binding flow
+    // } else {
+    //Skip device binding and bind device to session
+    await _setupDeviceSession(context, bank, url, callback);
+    // }
+  }
+
+  Future<void> _setupDeviceSession(BuildContext context, String bank,
+      String url, WebViewCallbackFunction callback) async {
+    try {
+      Map<String, String> deviceInfo = await _deviceInfoManager.getDeviceInfo();
+      final packageInfo = await PackageInfo.fromPlatform();
+      if (kDebugMode) {
+        print("Device Info: $deviceInfo");
+        print("Package Info: $packageInfo");
+      }
+      final bindDeviceToSessionResponse = await _networkManager.request(
+          url:
+              "https://sbmsmartbankinguat.esbeeyem.com:9443/api/device/sbm/session",
+          method: 'POST',
+          body: {
+            "manufacturer": deviceInfo["manufacturer"]!,
+            "model": deviceInfo["model"]!,
+            "device_uuid": deviceInfo["device_uuid"]!,
+            "os": Platform.isAndroid ? "Android" : "iOS",
+            "os_version": deviceInfo["os_version"]!,
+            "app_version": packageInfo.version,
+          });
+      print("bind device to session response $bindDeviceToSessionResponse");
+      if (bindDeviceToSessionResponse?.statusCode == 200) {
+        await _openWebView();
+      } else {
+        debugPrint(
+            'Error setting up device session: $bindDeviceToSessionResponse');
+        await _openWebView();
+      }
+    } catch (e) {
+      debugPrint('Error setting up device session: $e');
+      rethrow;
+    }
+  }
+
   Future<void> _openWebView() async {
+    final cookiesBefore = await cookieBridge.checkSession();
+    print('Cookies before WebView: $cookiesBefore');
     final webView = await cookieBridge.getWebView(
       url:
-          "https://sbmsmartbankinguat.esbeeyem.com:9443/api/user/mock?phone=7979945216&email=varun.jha@spense.money&module=/banking/sbm/credit_card/CRE&kid=PC7WzxKenHnnR58qkhGH4tt02WH1c1VI&name=Varun+Jha&photo=https://avatars.githubusercontent.com/u/11946127?v=4&redirect_url=https://www.sbmbank.co.in&device_binded=true",
+          "https://sbmsmartbankinguat.esbeeyem.com:9443/banking/sbm/credit_card/CRE",
       callback: (WebViewCallback action) {
         switch (action.type) {
           case WebViewCallbackType.redirect:
@@ -120,9 +254,11 @@ class MyHomeState extends State<MyHome> {
         }
       },
       whitelistedUrls: [
-        "https://sbmsmartbankinguat.esbeeyem.com:9443",
+        "sbmsmartbankinguat.esbeeyem.com:9443",
+        "smtplatform.sbmbank.co.in",
         "razorpay.com",
         "sbmkycuat.esbeeyem.com",
+        "uat-m2p-ccms.m2pfintech.com"
       ],
       hostName: "https://sbmsmartbankinguat.esbeeyem.com:9443",
     );
@@ -132,44 +268,19 @@ class MyHomeState extends State<MyHome> {
   }
 
   Future<void> _loginAndNavigate() async {
-    // var loginRequestBody = {
-    //   "phone": dotenv.env['PHONE'],
-    //   "email": dotenv.env['EMAIL'],
-    //   "attributes": {
-    //     "name": dotenv.env['NAME'],
-    //     "photo": dotenv.env['PHOTO'],
-    //     "accountId": dotenv.env['ACCOUNT_ID'],
-    //   },
-    //   "module": dotenv.env['MODULE'],
-    //   "device_binded": dotenv.env['DEVICE_BINDED'],
-    // };
-    //
-    // var loginResponse = await sso(
-    //   loginRequestBody,
-    //   {
-    //     'Content-Type': 'application/json',
-    //     'username': dotenv.env['USERNAME'],
-    //     'password': dotenv.env['PASSWORD'],
-    //     'kid': dotenv.env['KID'],
-    //   },
-    // );
+    String token = await createToken();
 
-    // print(loginResponse);
-
-    // if (loginResponse != null && loginResponse.statusCode == 200) {
-    //   var token = loginResponse.data['token'];
-    //   var tokenResponse = await login({"token": token});
-
-    // if (tokenResponse != null && tokenResponse.statusCode == 200) {
-    // Navigator.pushReplacement(
-    //   context,
-    //   MaterialPageRoute(
-    //     builder: (context) => CustomWebViewScreen(
-    //         key: UniqueKey(), url: '$baseUrl/banking/sbm/credit_card/CRE'),
-    //   ),
-    // );
+    open(context, "/banking/sbm/credit_card/CRE", token,
+        (WebViewCallback action) {
+      switch (action.type) {
+        case WebViewCallbackType.redirect:
+          print("Redirected with status: ${action.status}");
+          break;
+        case WebViewCallbackType.logout:
+          print("User logged out");
+          break;
+      }
+    });
     _openWebView();
-    // }
-    // }
   }
 }

@@ -120,21 +120,92 @@ class CustomWebViewState extends State<WebView> {
     Uri? uri = Uri.tryParse(_currentUrl!);
     String? domain = uri?.host;
 
-    String decodedCookie = Uri.decodeComponent(widget.cookie);
+    debugPrint('Syncing cookies to WebView for domain: $domain');
+    debugPrint('Original cookie: ${widget.cookie}');
 
-    List<String> cookieParts = decodedCookie.split('=');
-    if (cookieParts.length == 2) {
-      String cookieName = cookieParts[0];
-      String cookieValue = cookieParts[1];
-      await CookieManager.instance().setCookie(
-        url: WebUri(_currentUrl!),
-        name: cookieName,
-        value: cookieValue,
-        domain: domain,
-        path: '/',
-      );
+    try {
+      // IMPORTANT: Clear existing cookies for this domain first
+      await CookieManager.instance().deleteCookies(url: WebUri(_currentUrl!));
+      debugPrint('Cleared existing cookies');
+
+      String decodedCookie = Uri.decodeComponent(widget.cookie);
+      debugPrint('Decoded cookie: $decodedCookie');
+
+      if (!decodedCookie.contains(';')) {
+        // Handle single cookie case
+        List<String> cookieParts = decodedCookie.split('=');
+
+        if (cookieParts.length == 2) {
+          String cookieName = cookieParts[0];
+          String cookieValue = cookieParts[1];
+          await CookieManager.instance().setCookie(
+            url: WebUri(_currentUrl!),
+            name: cookieName,
+            value: cookieValue,
+            domain: domain,
+            path: '/',
+          );
+        }
+      } else {
+        // Handle multiple cookies
+        List<String> cookiesList = decodedCookie.split(';');
+
+        for (String cookieString in cookiesList) {
+          cookieString = cookieString.trim();
+          if (cookieString.isEmpty) continue;
+
+          int firstEqualIndex = cookieString.indexOf('=');
+          if (firstEqualIndex > 0) {
+            String cookieName =
+                cookieString.substring(0, firstEqualIndex).trim();
+            String cookieValue =
+                cookieString.substring(firstEqualIndex + 1).trim();
+
+            debugPrint('Setting cookie part: $cookieName=$cookieValue');
+
+            await CookieManager.instance().setCookie(
+              url: WebUri(_currentUrl!),
+              name: cookieName,
+              value: cookieValue,
+              domain: domain,
+              path: '/',
+            );
+          }
+        }
+      }
+
+      // Verify cookies were set correctly
+      final cookies =
+          await CookieManager.instance().getCookies(url: WebUri(_currentUrl!));
+      debugPrint(
+          'Cookies after sync: ${cookies.map((c) => '${c.name}=${c.value}').join('; ')}');
+    } catch (e) {
+      debugPrint('Error syncing cookies: $e');
     }
   }
+
+  // Future<void> _syncCookiesToWebView() async {
+  //   // sbmsmartbankinguat.esbeeyem.com:9443
+  //
+  //   // smtplatform.sbmbank.co.in
+  //   Uri? uri = Uri.tryParse(_currentUrl!);
+  //   String? domain = uri?.host;
+  //
+  //   String decodedCookie = Uri.decodeComponent(widget.cookie);
+  //
+  //   List<String> cookieParts = decodedCookie.split('=');
+  //   if (cookieParts.length == 2) {
+  //     String cookieName = cookieParts[0];
+  //     String cookieValue = cookieParts[1];
+  //     await CookieManager.instance().setCookie(
+  //       url: WebUri(_currentUrl!),
+  //       name: cookieName,
+  //       value: cookieValue,
+  //       domain: domain,
+  //       path: '/',
+  //     );
+  //   }
+  // }
 
   Future<void> logout(BuildContext context) async {
     try {
@@ -469,7 +540,8 @@ class CustomWebViewState extends State<WebView> {
         (hostName.isNotEmpty && url.contains(hostName));
 
     // Check if URL is ios redirection url
-    bool isIOSRedirectedUrl = iOSBrowserRedirectDomain.any((black) => url.contains(black));
+    bool isIOSRedirectedUrl =
+        iOSBrowserRedirectDomain.any((black) => url.contains(black));
 
     if (isAllowed) {
       if (Platform.isIOS) {
