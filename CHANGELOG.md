@@ -110,3 +110,7 @@
 ## 1.1.1 - 2025-02-27
 
 - Added custom toast message
+
+## 1.1.2 - 2025-03-01
+
+- Fixed Intent Handling issues
