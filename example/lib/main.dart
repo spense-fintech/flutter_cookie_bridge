@@ -113,15 +113,15 @@ class MyHomeState extends State<MyHome> {
     };
 
     final Map<String, String> attributes = {
-      'name': "Sukesh Bairy",
+      'name': "Isha Raghav",
       'photo': "",
     };
     const Duration expirationDuration = Duration(milliseconds: 300000);
     final clientSecret = dotenv.env['CLIENT_SECRET'];
     final jwt = JWT(
       {
-        'email': "sukeshbairy@gmail.com",
-        'phone': "9686853769",
+        'email': "isha.raghav@spense.money",
+        'phone': "9821059349",
         'attributes': attributes,
         'module': "/banking/sbm/credit_card/CRE",
       },
@@ -166,7 +166,7 @@ class MyHomeState extends State<MyHome> {
     try {
       await cookieBridge.clearSession();
       final tokenResponse = await _networkManager.request(
-          url: "https://smtplatform.sbmbank.co.in/api/user/token",
+          url: "https://sbmsmartbankinguat.esbeeyem.com:9443/api/user/token",
           method: 'POST',
           body: {"token": token});
 
@@ -211,7 +211,7 @@ class MyHomeState extends State<MyHome> {
         print("Package Info: $packageInfo");
       }
       final bindDeviceToSessionResponse = await _networkManager.request(
-          url: "https://smtplatform.sbmbank.co.in/api/device/sbm/session",
+          url: "https://sbmsmartbankinguat.esbeeyem.com:9443/api/device/sbm/session",
           method: 'POST',
           body: {
             "manufacturer": deviceInfo["manufacturer"]!,
@@ -239,7 +239,7 @@ class MyHomeState extends State<MyHome> {
     final cookiesBefore = await cookieBridge.checkSession();
     print('Cookies before WebView: $cookiesBefore');
     final webView = await cookieBridge.getWebView(
-      url: "https://smtplatform.sbmbank.co.in/banking/sbm/credit_card/CRE",
+      url: "https://sbmsmartbankinguat.esbeeyem.com:9443/banking/sbm/credit_card/CRE",
       callback: (WebViewCallback action) {
         switch (action.type) {
           case WebViewCallbackType.redirect:
@@ -258,7 +258,7 @@ class MyHomeState extends State<MyHome> {
         "sbmkycuat.esbeeyem.com",
         "uat-m2p-ccms.m2pfintech.com"
       ],
-      hostName: "https://smtplatform.sbmbank.co.in",
+      hostName: "https://sbmsmartbankinguat.esbeeyem.com:9443",
     );
     Navigator.of(context).push(MaterialPageRoute(
       builder: (context) => webView,

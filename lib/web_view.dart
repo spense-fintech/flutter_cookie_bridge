@@ -500,13 +500,6 @@ class CustomWebViewState extends State<WebView> {
     final hostName = widget.hostName ?? '';
     debugPrint("Navigating to URL: $url");
 
-    // if (!url.contains("/redirect")) {
-    //   debugPrint("Session expired detected");
-    //   widget.onCallback?.call(WebViewCallback.logout());
-    //   await logout(context);
-    //   return NavigationActionPolicy.CANCEL;
-    // }
-
     if (!_hasRedirected &&
         (url.contains('/redirect?status=') ||
             url.contains('/session-expired?status='))) {
@@ -559,29 +552,24 @@ class CustomWebViewState extends State<WebView> {
       return NavigationActionPolicy.ALLOW;
     }
 
-    // URL is not whitelisted - open externally
-    if (await canLaunchUrl(Uri.parse(url))) {
-      await launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication);
-    } else {
-      debugPrint("Could not launch $url");
-      // Show toast here
-      showCustomToast(context, "No application found to open this link");
+    if (url.contains("about:blank")) {
       return NavigationActionPolicy.CANCEL;
     }
-    // for (String whitelistedUrl in whitelistedUrls) {
-    //   if (url.contains(whitelistedUrl) ||
-    //       (hostName.isNotEmpty && url.contains(hostName))) {
-    //     return NavigationActionPolicy.ALLOW;
-    //   }
-    // }
-    //
-    // if (await canLaunchUrl(Uri.parse(url))) {
-    //   await launchUrl(Uri.parse(url));
-    // } else {
-    //   print("Could not launch $url");
-    //   // Show toast here
-    // }
-    //
+
+    // URL is not whitelisted - open externally
+    try {
+      if (await canLaunchUrl(Uri.parse(url))) {
+        await Future.delayed(
+            Duration(milliseconds: 200)); // Small delay to avoid conflicts
+        await launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication);
+      } else {
+        debugPrint("Could not launch $url");
+        showCustomToast(context, "No application found to open this link");
+      }
+    } catch (e) {
+      debugPrint("Error launching URL: $e");
+      showCustomToast(context, "Error opening link");
+    }
     return NavigationActionPolicy.CANCEL;
   }
 
@@ -606,6 +594,29 @@ class CustomWebViewState extends State<WebView> {
                 headers: _headers,
               ),
               initialSettings: _buildWebViewSettings(),
+              onCreateWindow: (controller, createWindowRequest) async {
+                final url = createWindowRequest.request.url;
+                try {
+                  if (url != null && !url.toString().startsWith("https://")) {
+                    if (await canLaunchUrl(url)) {
+                      await Future.delayed(const Duration(
+                          milliseconds: 200)); // Small delay to avoid conflicts
+                      await launchUrl(url,
+                          mode: LaunchMode.externalApplication);
+                    } else {
+                      debugPrint("Could not launch $url");
+                      showCustomToast(
+                          context, "No application found to open this link");
+                    }
+                  }
+
+                } catch (e) {
+                  debugPrint("Error launching URL: $e");
+                  showCustomToast(context, "Error opening link");
+                }
+                // Return false to indicate that the new window should not be created in-app
+                return false;
+              },
               onGeolocationPermissionsShowPrompt: (controller, origin) async {
                 bool locationGranted = Platform.isIOS
                     ? await _handleIOSPermission(Permission.location)
@@ -699,7 +710,7 @@ class CustomWebViewState extends State<WebView> {
     final overlayState = Overlay.of(context);
     final overlayEntry = OverlayEntry(
       builder: (context) => Positioned(
-        bottom: MediaQuery.of(context).viewInsets.bottom + 50,
+        bottom: MediaQuery.of(context).viewInsets.bottom,
         width: MediaQuery.of(context).size.width,
         child: CustomToast(message: message),
       ),
