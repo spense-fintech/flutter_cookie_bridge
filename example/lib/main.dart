@@ -211,7 +211,8 @@ class MyHomeState extends State<MyHome> {
         print("Package Info: $packageInfo");
       }
       final bindDeviceToSessionResponse = await _networkManager.request(
-          url: "https://sbmsmartbankinguat.esbeeyem.com:9443/api/device/sbm/session",
+          url:
+              "https://sbmsmartbankinguat.esbeeyem.com:9443/api/device/sbm/session",
           method: 'POST',
           body: {
             "manufacturer": deviceInfo["manufacturer"]!,
@@ -239,7 +240,8 @@ class MyHomeState extends State<MyHome> {
     final cookiesBefore = await cookieBridge.checkSession();
     print('Cookies before WebView: $cookiesBefore');
     final webView = await cookieBridge.getWebView(
-      url: "https://sbmsmartbankinguat.esbeeyem.com:9443/banking/sbm/credit_card/CRE",
+      url:
+          "https://sbmsmartbankinguat.esbeeyem.com:9443/banking/sbm/credit_card/CRE",
       callback: (WebViewCallback action) {
         switch (action.type) {
           case WebViewCallbackType.redirect:

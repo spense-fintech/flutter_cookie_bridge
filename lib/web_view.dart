@@ -609,7 +609,6 @@ class CustomWebViewState extends State<WebView> {
                           context, "No application found to open this link");
                     }
                   }
-
                 } catch (e) {
                   debugPrint("Error launching URL: $e");
                   showCustomToast(context, "Error opening link");
