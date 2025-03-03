@@ -119,3 +119,7 @@
 
 - Fixed user agent issue
 - Fixed deep link logic
+
+## 1.1.4 - 2025-03-03
+
+- Minor changes
