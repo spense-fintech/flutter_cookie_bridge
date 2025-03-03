@@ -237,7 +237,7 @@ class CustomWebViewState extends State<WebView> {
         ? "Mozilla/5.0 (iPhone; CPU iPhone OS 16_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.0 Mobile/15E148 Safari/604.1"
         // : "Mozilla/5.0 (Linux; Android 5.0; Nexus 5 Build/LRX21V) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/41.0.2272.96 Mobile Safari/537.36";
         : "Mozilla/5.0 (iPhone; CPU iPhone OS 14_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/14.0 Mobile/15E148 Safari/604.1";
-        // : "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/537.36";
+    // : "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/537.36";
 
     return InAppWebViewSettings(
       cacheEnabled: widget.options?['cacheEnabled'] ?? true,
@@ -499,6 +499,17 @@ class CustomWebViewState extends State<WebView> {
 
     print("Current url: $url");
 
+    if (!url.startsWith("https://")) {
+      try {
+        await Future.delayed(const Duration(
+            milliseconds: 200)); // Small delay to avoid conflicts
+        await launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication);
+      } catch (e) {
+        debugPrint("Error launching URL: $e");
+        showCustomToast(context, "Error opening link");
+      }
+    }
+
     // Get whitelisted URLs and hostname from widget, with fallback to empty values
     final whitelistedUrls = widget.whitelistedUrls ?? [];
     final iOSBrowserRedirectDomain = widget.iOSBrowserRedirectDomains ?? [];
@@ -562,19 +573,7 @@ class CustomWebViewState extends State<WebView> {
     }
 
     // URL is not whitelisted - open externally
-    try {
-      // if (await canLaunchUrl(Uri.parse(url))) {
-        await Future.delayed(
-            Duration(milliseconds: 200)); // Small delay to avoid conflicts
-        await launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication);
-      // } else {
-      //   debugPrint("Could not launch $url");
-      //   showCustomToast(context, "No application found to open this link");
-      // }
-    } catch (e) {
-      debugPrint("Error launching URL: $e");
-      showCustomToast(context, "Error opening link");
-    }
+
     return NavigationActionPolicy.CANCEL;
   }
 
@@ -604,16 +603,9 @@ class CustomWebViewState extends State<WebView> {
                 debugPrint("Creating new window for URL: $url");
                 try {
                   if (url != null && !url.toString().startsWith("https://")) {
-                    // if (await canLaunchUrl(url)) {
-                      await Future.delayed(const Duration(
-                          milliseconds: 200)); // Small delay to avoid conflicts
-                      await launchUrl(url,
-                          mode: LaunchMode.externalApplication);
-                    // } else {
-                    //   debugPrint("Could not launch $url");
-                    //   showCustomToast(
-                    //       context, "No application found to open this link");
-                    // }
+                    await Future.delayed(const Duration(
+                        milliseconds: 200)); // Small delay to avoid conflicts
+                    await launchUrl(url, mode: LaunchMode.externalApplication);
                   }
                 } catch (e) {
                   debugPrint("Error launching URL: $e");
