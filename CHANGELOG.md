@@ -114,3 +114,8 @@
 ## 1.1.2 - 2025-03-01
 
 - Fixed Intent Handling issues
+
+## 1.1.3 - 2025-03-03
+
+- Fixed user agent issue
+- Fixed deep link logic
