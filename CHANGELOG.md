@@ -127,3 +127,7 @@
 ## 1.1.5 - 2025-03-04
 
 - Dynamic user agent handling
+
+## 1.1.6 - 2025-03-04
+
+- Fixed the error message
