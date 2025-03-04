@@ -19,6 +19,8 @@ class WebView extends StatefulWidget {
   final List<String>? whitelistedUrls;
   final String? hostName;
   final List<String>? iOSBrowserRedirectDomains;
+  final String karzaDomain = "sbmkyc";
+  final String razorpayDomain = "razorpay";
 
 // // GlobalKey to access the state of the WebViewManager
 // static final GlobalKey<CustomWebViewState> globalKey =
@@ -42,13 +44,6 @@ class WebView extends StatefulWidget {
     }
   }
 
-  // Future<void> logout(BuildContext context) async {
-  //   final state = (key as GlobalKey<CustomWebViewState>?)?.currentState;
-  //   if (state != null) {
-  //     await state.logout(context);
-  //   }
-  // }
-
   @override
   CustomWebViewState createState() => CustomWebViewState();
 }
@@ -58,8 +53,17 @@ class CustomWebViewState extends State<WebView> {
   String? _currentUrl;
   Map<String, String>? _headers;
   bool _hasRedirected = false;
+  String? _currentUserAgent;
 
   final SessionManager _sessionManager = SessionManager();
+
+  final String _razorpayUserAgent = Platform.isIOS
+      ? "Mozilla/5.0 (iPhone; CPU iPhone OS 16_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.0 Mobile/15E148 Safari/604.1"
+      : "Mozilla/5.0 (iPhone; CPU iPhone OS 14_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/14.0 Mobile/15E148 Safari/604.1";
+
+  final String _karzaUserAgent = Platform.isIOS
+      ? "Mozilla/5.0 (iPhone; CPU iPhone OS 16_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.0 Mobile/15E148 Safari/604.1"
+      : "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/604.1";
 
   @override
   void initState() {
@@ -67,6 +71,21 @@ class CustomWebViewState extends State<WebView> {
     _currentUrl = widget.url;
     // WidgetsBinding.instance.addPostFrameCallback((_) async {
     // });
+    _currentUserAgent = _determineUserAgent(widget.url);
+  }
+
+  String _determineUserAgent(String url) {
+    // Check if URL contains Karza domain or patterns
+    if (url.contains(widget.karzaDomain)) {
+      return _karzaUserAgent;
+    }
+
+    // Check if URL contains Razorpay domain or patterns
+    if (url.contains(widget.razorpayDomain)) {
+      return _razorpayUserAgent;
+    }
+    // Default to Razorpay user agent if no match
+    return _razorpayUserAgent;
   }
 
   @override
@@ -233,11 +252,10 @@ class CustomWebViewState extends State<WebView> {
   }
 
   InAppWebViewSettings _buildWebViewSettings() {
-    final String userAgent = Platform.isIOS
-        ? "Mozilla/5.0 (iPhone; CPU iPhone OS 16_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.0 Mobile/15E148 Safari/604.1"
-        // : "Mozilla/5.0 (Linux; Android 5.0; Nexus 5 Build/LRX21V) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/41.0.2272.96 Mobile Safari/537.36";
-        : "Mozilla/5.0 (iPhone; CPU iPhone OS 14_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/14.0 Mobile/15E148 Safari/604.1";
-    // : "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/537.36";
+    // final String userAgent = Platform.isIOS
+    //     ? "Mozilla/5.0 (iPhone; CPU iPhone OS 16_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.0 Mobile/15E148 Safari/604.1"
+    //     : "Mozilla/5.0 (iPhone; CPU iPhone OS 14_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/14.0 Mobile/15E148 Safari/604.1"; // Razorpay Working
+    // // : "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/604.1"; // Karza Working
 
     return InAppWebViewSettings(
       cacheEnabled: widget.options?['cacheEnabled'] ?? true,
@@ -248,7 +266,7 @@ class CustomWebViewState extends State<WebView> {
       mediaPlaybackRequiresUserGesture: false,
       supportMultipleWindows: true,
       javaScriptCanOpenWindowsAutomatically: true,
-      userAgent: userAgent,
+      userAgent: _currentUserAgent,
       mixedContentMode: MixedContentMode.MIXED_CONTENT_ALWAYS_ALLOW,
       supportZoom: true,
       useOnLoadResource: true,
@@ -680,6 +698,19 @@ class CustomWebViewState extends State<WebView> {
               },
               onLoadStart: (controller, url) async {
                 // await _syncCookiesToWebView();
+                String newUrl = url.toString();
+                String newUserAgent = _determineUserAgent(newUrl);
+
+                if (newUserAgent != _currentUserAgent) {
+                  _currentUserAgent = newUserAgent;
+
+                  await controller.setSettings(
+                      settings: InAppWebViewSettings(
+                    userAgent: _currentUserAgent,
+                  ));
+
+                  debugPrint('Changed user agent for URL $newUrl to: $_currentUserAgent');
+                }
               },
               onLoadStop: (controller, url) async {
                 await controller.evaluateJavascript(source: """
