@@ -131,3 +131,7 @@
 ## 1.1.6 - 2025-03-04
 
 - Fixed the error message
+
+## 1.1.7 - 2025-03-04
+
+- Added loader callback
