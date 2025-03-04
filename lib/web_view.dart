@@ -524,7 +524,7 @@ class CustomWebViewState extends State<WebView> {
         await launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication);
       } catch (e) {
         debugPrint("Error launching URL: $e");
-        showCustomToast(context, "Error opening link");
+        showCustomToast(context, "Application not found to open link");
       }
     }
 
@@ -627,7 +627,7 @@ class CustomWebViewState extends State<WebView> {
                   }
                 } catch (e) {
                   debugPrint("Error launching URL: $e");
-                  showCustomToast(context, "Error opening link");
+                  showCustomToast(context, "Application not found to open link");
                 }
                 // Return false to indicate that the new window should not be created in-app
                 return false;
