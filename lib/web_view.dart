@@ -19,6 +19,7 @@ class WebView extends StatefulWidget {
   final List<String>? whitelistedUrls;
   final String? hostName;
   final List<String>? iOSBrowserRedirectDomains;
+  final VoidCallback? onPageFinished;
   final String karzaDomain = "sbmkyc";
   final String razorpayDomain = "razorpay";
 
@@ -34,7 +35,8 @@ class WebView extends StatefulWidget {
       this.onCallback,
       this.whitelistedUrls,
       this.hostName,
-      this.iOSBrowserRedirectDomains})
+      this.iOSBrowserRedirectDomains,
+      this.onPageFinished})
       : super(key: key);
 
   Future<void> loadUrl(String url) async {
@@ -713,6 +715,9 @@ class CustomWebViewState extends State<WebView> {
                 }
               },
               onLoadStop: (controller, url) async {
+                if (widget.onPageFinished != null) {
+                  widget.onPageFinished!();
+                }
                 await controller.evaluateJavascript(source: """
                 (function() {
                   let originalOpen = window.open;
