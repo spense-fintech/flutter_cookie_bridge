@@ -629,7 +629,8 @@ class CustomWebViewState extends State<WebView> {
                   }
                 } catch (e) {
                   debugPrint("Error launching URL: $e");
-                  showCustomToast(context, "Application not found to open link");
+                  showCustomToast(
+                      context, "Application not found to open link");
                 }
                 // Return false to indicate that the new window should not be created in-app
                 return false;
@@ -711,7 +712,8 @@ class CustomWebViewState extends State<WebView> {
                     userAgent: _currentUserAgent,
                   ));
 
-                  debugPrint('Changed user agent for URL $newUrl to: $_currentUserAgent');
+                  debugPrint(
+                      'Changed user agent for URL $newUrl to: $_currentUserAgent');
                 }
               },
               onLoadStop: (controller, url) async {

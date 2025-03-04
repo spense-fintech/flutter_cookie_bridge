@@ -39,16 +39,15 @@ class FlutterCookieBridge {
       cookie = cookies.join('; ');
     }
     _webView = await WebView(
-      key: GlobalKey<CustomWebViewState>(),
-      url: url,
-      cookie: cookie,
-      options: options,
-      onCallback: callback,
-      whitelistedUrls: whitelistedUrls,
-      hostName: hostName,
-      iOSBrowserRedirectDomains: iOSBrowserRedirectDomains,
-      onPageFinished: onPageFinished
-    );
+        key: GlobalKey<CustomWebViewState>(),
+        url: url,
+        cookie: cookie,
+        options: options,
+        onCallback: callback,
+        whitelistedUrls: whitelistedUrls,
+        hostName: hostName,
+        iOSBrowserRedirectDomains: iOSBrowserRedirectDomains,
+        onPageFinished: onPageFinished);
 
     return _webView;
   }
