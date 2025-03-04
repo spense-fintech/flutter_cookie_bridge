@@ -123,3 +123,7 @@
 ## 1.1.4 - 2025-03-03
 
 - Minor changes
+
+## 1.1.5 - 2025-03-04
+
+- Dynamic user agent handling
