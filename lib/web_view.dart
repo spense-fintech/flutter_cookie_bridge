@@ -16,16 +16,12 @@ class WebView extends StatefulWidget {
   final String cookie;
   final Map<String, dynamic>? options;
   late final Function(WebViewCallback)? onCallback;
-  final List<String>? whitelistedUrls;
+  final List<String>? whitelistedUrlsAndroid;
+  final List<String>? whitelistedUrlsIos;
   final String? hostName;
-  final List<String>? iOSBrowserRedirectDomains;
   final VoidCallback? onPageFinished;
   final String karzaDomain = "sbmkyc";
   final String razorpayDomain = "razorpay";
-
-// // GlobalKey to access the state of the WebViewManager
-// static final GlobalKey<CustomWebViewState> globalKey =
-//     GlobalKey<CustomWebViewState>();
 
   WebView(
       {Key? key,
@@ -33,9 +29,9 @@ class WebView extends StatefulWidget {
       required this.cookie,
       this.options,
       this.onCallback,
-      this.whitelistedUrls,
+      this.whitelistedUrlsAndroid,
+      this.whitelistedUrlsIos,
       this.hostName,
-      this.iOSBrowserRedirectDomains,
       this.onPageFinished})
       : super(key: key);
 
@@ -206,59 +202,18 @@ class CustomWebViewState extends State<WebView> {
     }
   }
 
-  // Future<void> _syncCookiesToWebView() async {
-  //   // sbmsmartbankinguat.esbeeyem.com:9443
-  //
-  //   // smtplatform.sbmbank.co.in
-  //   Uri? uri = Uri.tryParse(_currentUrl!);
-  //   String? domain = uri?.host;
-  //
-  //   String decodedCookie = Uri.decodeComponent(widget.cookie);
-  //
-  //   List<String> cookieParts = decodedCookie.split('=');
-  //   if (cookieParts.length == 2) {
-  //     String cookieName = cookieParts[0];
-  //     String cookieValue = cookieParts[1];
-  //     await CookieManager.instance().setCookie(
-  //       url: WebUri(_currentUrl!),
-  //       name: cookieName,
-  //       value: cookieValue,
-  //       domain: domain,
-  //       path: '/',
-  //     );
-  //   }
-  // }
-
   Future<void> logout(BuildContext context) async {
     try {
       await _sessionManager.clearSession();
       await CookieManager.instance().deleteAllCookies();
 
       debugPrint("logging out from webview");
-
-      // WidgetsBinding.instance.addPostFrameCallback((_) async {
-      //   if (!mounted) {
-      //     await Future.delayed(Duration(milliseconds: 100));
-      //   }
-      //
-      //   if (mounted) {
-      //     await Navigator.of(context)
-      //         .pushNamedAndRemoveUntil('/', (route) => false);
-      //   } else {
-      //     widget.onCallback?.call(WebViewCallback.logout());
-      //   }
-      // });
     } catch (e) {
       debugPrint('Error during logout: $e');
     }
   }
 
   InAppWebViewSettings _buildWebViewSettings() {
-    // final String userAgent = Platform.isIOS
-    //     ? "Mozilla/5.0 (iPhone; CPU iPhone OS 16_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.0 Mobile/15E148 Safari/604.1"
-    //     : "Mozilla/5.0 (iPhone; CPU iPhone OS 14_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/14.0 Mobile/15E148 Safari/604.1"; // Razorpay Working
-    // // : "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/604.1"; // Karza Working
-
     return InAppWebViewSettings(
       cacheEnabled: widget.options?['cacheEnabled'] ?? true,
       javaScriptEnabled: widget.options?['javaScriptEnabled'] ?? true,
@@ -531,8 +486,8 @@ class CustomWebViewState extends State<WebView> {
     }
 
     // Get whitelisted URLs and hostname from widget, with fallback to empty values
-    final whitelistedUrls = widget.whitelistedUrls ?? [];
-    final iOSBrowserRedirectDomain = widget.iOSBrowserRedirectDomains ?? [];
+    final whitelistedUrlsAndroid = widget.whitelistedUrlsAndroid ?? [];
+    final whitelistedUrlsIos = widget.whitelistedUrlsIos ?? [];
     final hostName = widget.hostName ?? '';
     debugPrint("Navigating to URL: $url");
 
@@ -567,24 +522,20 @@ class CustomWebViewState extends State<WebView> {
       return NavigationActionPolicy.CANCEL;
     }
 
-    bool isAllowed = whitelistedUrls.any((white) => url.contains(white)) ||
-        (hostName.isNotEmpty && url.contains(hostName));
+    bool isAllowediOS =
+        whitelistedUrlsIos.any((white) => url.contains(white)) ||
+            (hostName.isNotEmpty && url.contains(hostName));
 
-    // Check if URL is ios redirection url
-    bool isIOSRedirectedUrl =
-        iOSBrowserRedirectDomain.any((black) => url.contains(black));
+    bool isAllowedAndroid = whitelistedUrlsAndroid.any((white) =>
+        url.contains(white) || (hostName.isNotEmpty && url.contains(hostName)));
 
-    if (isAllowed) {
-      if (Platform.isIOS) {
-        if (isIOSRedirectedUrl) {
-          if (await canLaunchUrl(Uri.parse(url))) {
-            await launchUrl(Uri.parse(url),
-                mode: LaunchMode.externalApplication);
-          }
-          return NavigationActionPolicy.CANCEL;
-        }
-      }
-      // URL is only whitelisted - allow in WebView
+    if (Platform.isAndroid && isAllowedAndroid) {
+      // URL is whitelisted - allow in WebView
+      return NavigationActionPolicy.ALLOW;
+    }
+
+    if (Platform.isIOS && isAllowediOS) {
+      // URL is whitelisted - allow in WebView
       return NavigationActionPolicy.ALLOW;
     }
 
@@ -593,6 +544,14 @@ class CustomWebViewState extends State<WebView> {
     }
 
     // URL is not whitelisted - open externally
+    try {
+      await Future.delayed(const Duration(
+          milliseconds: 200)); // Small delay to avoid conflicts
+      await launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication);
+    } catch (e) {
+      debugPrint("Error launching URL: $e");
+      showCustomToast(context, "Application not found to open link");
+    }
 
     return NavigationActionPolicy.CANCEL;
   }

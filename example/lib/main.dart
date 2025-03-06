@@ -112,16 +112,32 @@ class MyHomeState extends State<MyHome> {
       'alg': 'HS256',
     };
 
+    // final Map<String, String> attributes = {
+    //   'name': "Sukesh Bairy",
+    //   'photo': "",
+    // };
+    // const Duration expirationDuration = Duration(milliseconds: 300000);
+    // final clientSecret = dotenv.env['CLIENT_SECRET'];
+    // final jwt = JWT(
+    //   {
+    //     'email': "sukeshbairy@gmail.com",
+    //     'phone': "9686853769",
+    //     'attributes': attributes,
+    //     'module': "/banking/sbm/credit_card/CRE",
+    //   },
+    //   header: headers,
+    // );
+
     final Map<String, String> attributes = {
-      'name': "Isha Raghav",
+      'name': "Varun Jha",
       'photo': "",
     };
     const Duration expirationDuration = Duration(milliseconds: 300000);
     final clientSecret = dotenv.env['CLIENT_SECRET'];
     final jwt = JWT(
       {
-        'email': "isha.raghav@spense.money",
-        'phone': "9821059349",
+        'email': "jha.varun6@gmail.com",
+        'phone': "7979945216",
         'attributes': attributes,
         'module': "/banking/sbm/credit_card/CRE",
       },
@@ -253,11 +269,17 @@ class MyHomeState extends State<MyHome> {
             break;
         }
       },
-      whitelistedUrls: [
+      whitelistedUrlsAndroid: [
         "sbmsmartbankinguat.esbeeyem.com:9443",
         "smtplatform.sbmbank.co.in",
         "razorpay.com",
+        "uat-m2p-ccms.m2pfintech.com"
+      ],
+      whitelistedUrlsIos: [
+        "sbmsmartbankinguat.esbeeyem.com:9443",
+        "smtplatform.sbmbank.co.in",
         "sbmkycuat.esbeeyem.com",
+        "razorpay.com",
         "uat-m2p-ccms.m2pfintech.com"
       ],
       hostName: "https://sbmsmartbankinguat.esbeeyem.com:9443",
