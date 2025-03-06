@@ -441,7 +441,16 @@ class CustomWebViewState extends State<WebView> {
 
         // Open the file
         try {
-          final result = await OpenFilex.open(filePath);
+          int retries = 0;
+          var result;
+          while (retries < 5) {
+            if (await file.exists() && await file.length() > 0) {
+               result = await OpenFilex.open(filePath);
+              break;
+            }
+            await Future.delayed(Duration(milliseconds: 100));
+            retries++;
+          }
           debugPrint('Open file result: ${result.type} - ${result.message}');
 
           if (result.type != ResultType.done) {
