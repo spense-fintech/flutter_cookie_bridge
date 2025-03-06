@@ -135,3 +135,7 @@
 ## 1.1.7 - 2025-03-04
 
 - Added loader callback
+
+## 1.1.8 - 2025-03-06
+
+- Whitelisted URLs added
