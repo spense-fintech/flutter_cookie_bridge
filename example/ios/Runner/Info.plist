@@ -76,17 +76,6 @@
      <key>NSPhotoLibraryUsageDescription</key>
         <string>Photo library access is required for document upload</string>
 
-    <key>NSDocumentsUsageDescription</key>
-        <string>Access to documents is needed to download and save files</string>
-
-    <key>NSDownloadsUsageDescription</key>
-        <string>Access to downloads is needed to save files</string>
-
-    <key>NSDocumentsFolderUsageDescription</key>
-        <string>Access to document directory is required for downloading files</string>
-
-    <key>NSDownloadsFolderUsageDescription</key>
-        <string>Access to downloads directory is required for saving files</string>
 
     <key>WKAppBoundDomains</key>
     <array>
