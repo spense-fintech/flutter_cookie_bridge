@@ -143,3 +143,7 @@
 ## 1.1.9 - 2025-03-06
 
 - Fixed the unnecessary permissions issue
+
+## 1.1.10 - 2025-03-06
+
+- Removed permissions from iOS webview
