@@ -257,11 +257,13 @@ class CustomWebViewState extends State<WebView> {
       final androidInfo = await DeviceInfoPlugin().androidInfo;
       if (androidInfo.version.sdkInt >= 33) {
         // Android 13 and above
-        return await Permission.photos.request().isGranted;
+        // return await Permission.photos.request().isGranted;
+        return true;
       } else {
         // Below Android 13
-        final status = await Permission.storage.request();
-        return status.isGranted;
+        // final status = await Permission.storage.request();
+        // return status.isGranted;
+        return true;
       }
     }
     return true;
@@ -639,10 +641,6 @@ class CustomWebViewState extends State<WebView> {
                   } else if (resource == PermissionResourceType.CAMERA) {
                     granted &=
                         await _handlePermissionRequest(Permission.camera);
-                  } else if (resource ==
-                      PermissionResourceType.FILE_READ_WRITE) {
-                    granted &=
-                        await _handlePermissionRequest(Permission.storage);
                   } else if (resource == PermissionResourceType.NOTIFICATIONS) {
                     granted &=
                         await _handlePermissionRequest(Permission.notification);
