@@ -55,7 +55,7 @@ class CustomWebViewState extends State<WebView> {
 
   final SessionManager _sessionManager = SessionManager();
 
-  final String _razorpayUserAgent = Platform.isIOS
+  final String _defaultUserAgent = Platform.isIOS
       ? "Mozilla/5.0 (iPhone; CPU iPhone OS 16_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.0 Mobile/15E148 Safari/604.1"
       : "Mozilla/5.0 (iPhone; CPU iPhone OS 14_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/14.0 Mobile/15E148 Safari/604.1";
 
@@ -80,10 +80,10 @@ class CustomWebViewState extends State<WebView> {
 
     // Check if URL contains Razorpay domain or patterns
     if (url.contains(widget.razorpayDomain)) {
-      return _razorpayUserAgent;
+      return _defaultUserAgent;
     }
     // Default to Razorpay user agent if no match
-    return _razorpayUserAgent;
+    return _defaultUserAgent;
   }
 
   @override
