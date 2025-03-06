@@ -139,3 +139,7 @@
 ## 1.1.8 - 2025-03-06
 
 - Whitelisted URLs added
+
+## 1.1.9 - 2025-03-06
+
+- Fixed the unnecessary permissions issue

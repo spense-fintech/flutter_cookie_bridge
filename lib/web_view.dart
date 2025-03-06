@@ -378,7 +378,7 @@ class CustomWebViewState extends State<WebView> {
       // Request storage permissions
 
       if (Platform.isIOS) {
-        _requestIOSStoragePermission(context);
+        // _requestIOSStoragePermission(context);
       } else {
         //  Android permission
         if (!await _requestStoragePermission()) {
