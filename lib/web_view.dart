@@ -445,7 +445,7 @@ class CustomWebViewState extends State<WebView> {
           var result;
           while (retries < 5) {
             if (await file.exists() && await file.length() > 0) {
-               result = await OpenFilex.open(filePath);
+              result = await OpenFilex.open(filePath);
               break;
             }
             await Future.delayed(Duration(milliseconds: 100));
@@ -556,8 +556,8 @@ class CustomWebViewState extends State<WebView> {
 
     // URL is not whitelisted - open externally
     try {
-      await Future.delayed(const Duration(
-          milliseconds: 200)); // Small delay to avoid conflicts
+      await Future.delayed(
+          const Duration(milliseconds: 200)); // Small delay to avoid conflicts
       await launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication);
     } catch (e) {
       debugPrint("Error launching URL: $e");
@@ -578,7 +578,7 @@ class CustomWebViewState extends State<WebView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      resizeToAvoidBottomInset: true,
+      resizeToAvoidBottomInset: Platform.isIOS ? false : true,
       body: WillPopScope(
           onWillPop: _onWillPop,
           child: SafeArea(
