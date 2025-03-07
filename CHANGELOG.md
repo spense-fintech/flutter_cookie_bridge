@@ -147,3 +147,7 @@
 ## 1.1.10 - 2025-03-06
 
 - Removed permissions from iOS webview
+
+## 1.1.11 - 2025-03-07
+
+- Fixed keyboard layout issue in iOS
