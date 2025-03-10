@@ -54,7 +54,6 @@ class CustomWebViewState extends State<WebView> {
   String? _currentUserAgent;
 
   final SessionManager _sessionManager = SessionManager();
-
   final String _defaultUserAgent = Platform.isIOS
       ? "Mozilla/5.0 (iPhone; CPU iPhone OS 16_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.0 Mobile/15E148 Safari/604.1"
       : "Mozilla/5.0 (iPhone; CPU iPhone OS 14_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/14.0 Mobile/15E148 Safari/604.1";
@@ -88,6 +87,9 @@ class CustomWebViewState extends State<WebView> {
 
   @override
   void dispose() {
+    if (widget.onPageFinished != null) {
+      widget.onPageFinished!();
+    }
     _webViewController = null;
     super.dispose();
   }

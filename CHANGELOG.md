@@ -151,3 +151,7 @@
 ## 1.1.11 - 2025-03-07
 
 - Fixed keyboard layout issue in iOS
+
+## 1.1.12 - 2025-03-07
+
+- Added callback in dispose function 
