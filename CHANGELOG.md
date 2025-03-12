@@ -154,4 +154,8 @@
 
 ## 1.1.12 - 2025-03-07
 
-- Added callback in dispose function 
+- Added callback in dispose function
+
+## 1.1.13 -2025-03-12
+
+- Minor change for keyboard layout

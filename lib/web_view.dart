@@ -580,7 +580,7 @@ class CustomWebViewState extends State<WebView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      resizeToAvoidBottomInset: Platform.isIOS ? false : true,
+      resizeToAvoidBottomInset:  true,
       body: WillPopScope(
           onWillPop: _onWillPop,
           child: SafeArea(
