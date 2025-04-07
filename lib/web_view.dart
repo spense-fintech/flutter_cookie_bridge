@@ -12,33 +12,78 @@ import 'package:open_filex/open_filex.dart';
 import 'package:http/http.dart' as http;
 
 class WebView extends StatefulWidget {
+  static WebView? _instance;
+
   final String url;
   final String cookie;
-  final Map<String, dynamic>? options;
+  final Map? options;
   late final Function(WebViewCallback)? onCallback;
-  final List<String>? whitelistedUrlsAndroid;
-  final List<String>? whitelistedUrlsIos;
+  final List? whitelistedUrlsAndroid;
+  final List? whitelistedUrlsIos;
   final String? hostName;
-  final VoidCallback? onPageFinished;
-  final String karzaDomain = "sbmkyc";
-  final String razorpayDomain = "razorpay";
+  late VoidCallback? onPageFinished;
 
-  WebView(
-      {Key? key,
-      required this.url,
-      required this.cookie,
-      this.options,
-      this.onCallback,
-      this.whitelistedUrlsAndroid,
-      this.whitelistedUrlsIos,
-      this.hostName,
-      this.onPageFinished})
-      : super(key: key);
+  Future<void> updateWebView({
+    required String url,
+    required String cookie,
+    Map<String, dynamic>? options,
+    Function(WebViewCallback)? callback,
+    List<String>? whitelistedUrlsAndroid,
+    List<String>? whitelistedUrlsIos,
+    String? hostName,
+    VoidCallback? onPageFinished,
+  }) async {
+    final state = (key as GlobalKey<CustomWebViewState>).currentState;
 
-  Future<void> loadUrl(String url) async {
-    final state = (key as GlobalKey<CustomWebViewState>?)?.currentState;
     if (state != null) {
-      await state.loadUrl(url);
+      state._currentUrl = url;
+      state._headers = {'Cookie': cookie};
+
+       this.onCallback = callback;
+
+      if (onPageFinished != null) {
+         // We'll store the callback reference for later use
+        this.onPageFinished = onPageFinished;
+      }
+
+       if (state._webViewController != null) {
+         await state._syncCookiesToWebView();
+
+      }
+    } else {
+      throw Exception("WebView state is not available");
+    }
+  }
+
+  static Map get config {
+    return _instance?.options?['webview'] ?? {};
+  }
+
+  WebView({
+    Key? key,
+    required this.url,
+    required this.cookie,
+    this.options,
+    this.onCallback,
+    this.whitelistedUrlsAndroid,
+    this.whitelistedUrlsIos,
+    this.hostName,
+    this.onPageFinished
+  }) : super(key: key) {
+    _instance = this;
+  }
+
+  // Updated loadUrl method to use the CustomWebViewState type
+  Future loadUrl(String url) async {
+    final state = (key as GlobalKey<CustomWebViewState>?)?.currentState;
+    if (state != null && state._webViewController != null) {
+      state._currentUrl = url;
+      await state._webViewController!.loadUrl(
+        urlRequest: URLRequest(
+          url: WebUri(url),
+          headers: state._headers,
+        ),
+      );
     }
   }
 
@@ -52,6 +97,8 @@ class CustomWebViewState extends State<WebView> {
   Map<String, String>? _headers;
   bool _hasRedirected = false;
   String? _currentUserAgent;
+
+
 
   final SessionManager _sessionManager = SessionManager();
   final String _defaultUserAgent = Platform.isIOS
@@ -72,19 +119,25 @@ class CustomWebViewState extends State<WebView> {
   }
 
   String _determineUserAgent(String url) {
-    // Check if URL contains Karza domain or patterns
-    if (url.contains(widget.karzaDomain)) {
-      return _karzaUserAgent;
+    final userAgentConfig = WebView.config["userAgent"];
+    final domains = WebView.config["domains"];
+
+    if (url.contains(domains['karza'] ?? '')) {
+      return Platform.isIOS
+          ? userAgentConfig['karza']['ios']
+          : userAgentConfig['karza']['android'];
     }
 
-    // Check if URL contains Razorpay domain or patterns
-    if (url.contains(widget.razorpayDomain)) {
-      return _defaultUserAgent;
+    if (url.contains(domains['razorpay'] ?? '')) {
+      return Platform.isIOS
+          ? userAgentConfig['default']['ios']
+          : userAgentConfig['default']['android'];
     }
-    // Default to Razorpay user agent if no match
-    return _defaultUserAgent;
+
+    return Platform.isIOS
+        ? userAgentConfig['default']['ios']
+        : userAgentConfig['default']['android'];
   }
-
   @override
   void dispose() {
     if (widget.onPageFinished != null) {
@@ -177,9 +230,9 @@ class CustomWebViewState extends State<WebView> {
           int firstEqualIndex = cookieString.indexOf('=');
           if (firstEqualIndex > 0) {
             String cookieName =
-                cookieString.substring(0, firstEqualIndex).trim();
+            cookieString.substring(0, firstEqualIndex).trim();
             String cookieValue =
-                cookieString.substring(firstEqualIndex + 1).trim();
+            cookieString.substring(firstEqualIndex + 1).trim();
 
             debugPrint('Setting cookie part: $cookieName=$cookieValue');
 
@@ -196,7 +249,7 @@ class CustomWebViewState extends State<WebView> {
 
       // Verify cookies were set correctly
       final cookies =
-          await CookieManager.instance().getCookies(url: WebUri(_currentUrl!));
+      await CookieManager.instance().getCookies(url: WebUri(_currentUrl!));
       debugPrint(
           'Cookies after sync: ${cookies.map((c) => '${c.name}=${c.value}').join('; ')}');
     } catch (e) {
@@ -216,26 +269,26 @@ class CustomWebViewState extends State<WebView> {
   }
 
   InAppWebViewSettings _buildWebViewSettings() {
+    final settings = WebView.config["settings"];
     return InAppWebViewSettings(
-      cacheEnabled: widget.options?['cacheEnabled'] ?? true,
-      javaScriptEnabled: widget.options?['javaScriptEnabled'] ?? true,
-      domStorageEnabled: true,
-      allowFileAccess: true,
-      geolocationEnabled: true,
-      mediaPlaybackRequiresUserGesture: false,
-      supportMultipleWindows: true,
-      javaScriptCanOpenWindowsAutomatically: true,
+      cacheEnabled: settings['cacheEnabled'] ?? true,
+      javaScriptEnabled: settings['javaScriptEnabled'] ?? true,
+      domStorageEnabled: settings['domStorageEnabled'] ?? true,
+      allowFileAccess: settings['allowFileAccess'] ?? true,
+      geolocationEnabled: settings['geolocationEnabled'] ?? true,
+      mediaPlaybackRequiresUserGesture: settings['mediaPlaybackRequiresUserGesture'] ?? false,
+      supportMultipleWindows: settings['supportMultipleWindows'] ?? true,
+      javaScriptCanOpenWindowsAutomatically: settings['javaScriptCanOpenWindowsAutomatically'] ?? true,
       userAgent: _currentUserAgent,
       mixedContentMode: MixedContentMode.MIXED_CONTENT_ALWAYS_ALLOW,
-      supportZoom: true,
+      supportZoom: settings['supportZoom'] ?? true,
       useOnLoadResource: true,
       useShouldInterceptAjaxRequest: true,
       useShouldInterceptFetchRequest: true,
-      allowsInlineMediaPlayback: true,
-      useWideViewPort: true,
-      databaseEnabled: true,
+      allowsInlineMediaPlayback: settings['allowsInlineMediaPlayback'] ?? true,
+      useWideViewPort: settings['useWideViewPort'] ?? true,
+      databaseEnabled: settings['databaseEnabled'] ?? true,
       applicationNameForUserAgent: "Version/8.0.2 Safari/600.2.5",
-      //thirdPartyCookiesEnabled: true,
       iframeAllow: "camera *; microphone *",
       iframeAllowFullscreen: true,
       allowsAirPlayForMediaPlayback: true,
@@ -397,9 +450,9 @@ class CustomWebViewState extends State<WebView> {
 
       // Get cookies for authentication
       final cookies =
-          await CookieManager.instance().getCookies(url: request.url);
+      await CookieManager.instance().getCookies(url: request.url);
       final cookieString =
-          cookies.map((c) => '${c.name}=${c.value}').join('; ');
+      cookies.map((c) => '${c.name}=${c.value}').join('; ');
       final headers = {
         'Cookie': cookieString,
       };
@@ -484,50 +537,57 @@ class CustomWebViewState extends State<WebView> {
       NavigationAction navigationAction) async {
     Uri uri = navigationAction.request.url!;
     String url = uri.toString();
+    final urlConfig = WebView.config["urlHandling"];
 
-    print("Current url: $url");
+    debugPrint("Current url: $url");
 
-    if (!url.startsWith("https://")) {
-      try {
-        await Future.delayed(const Duration(
-            milliseconds: 200)); // Small delay to avoid conflicts
-        await launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication);
-      } catch (e) {
-        debugPrint("Error launching URL: $e");
-        showCustomToast(context, "Application not found to open link");
-      }
-    }
-
-    // Get whitelisted URLs and hostname from widget, with fallback to empty values
-    final whitelistedUrlsAndroid = widget.whitelistedUrlsAndroid ?? [];
-    final whitelistedUrlsIos = widget.whitelistedUrlsIos ?? [];
-    final hostName = widget.hostName ?? '';
-    debugPrint("Navigating to URL: $url");
-
-    if (!_hasRedirected &&
-        (url.contains('/redirect?status=') ||
-            url.contains('/session-expired?status='))) {
-      _hasRedirected = true;
-      String? status = uri.queryParameters['status'];
-      if (status != null) {
-        await logout(context);
-        widget.onCallback?.call(WebViewCallback.redirect(status));
-        Navigator.of(context).pop();
+    // Check protocol handling
+    if (!url.startsWith(urlConfig['protocolHandling']['defaultProtocol'])) {
+      if (urlConfig['protocolHandling']['externalProtocols']
+          .any((protocol) => url.startsWith(protocol))) {
+        try {
+          await Future.delayed(Duration(
+              milliseconds: urlConfig['delayBeforeExternalLaunch']));
+          await launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication);
+        } catch (e) {
+          debugPrint("Error launching URL: $e");
+          showCustomToast(context, "Application not found to open link");
+        }
         return NavigationActionPolicy.CANCEL;
       }
     }
-    if (url.contains(".pdf") ||
-        url.contains("/statements/") ||
-        url.contains("/download_statements") ||
-        url.contains(".jpeg") ||
-        url.contains(".png")) {
+
+    // Handle redirects
+    if (!_hasRedirected) {
+      for (String redirectPath in urlConfig['redirectPaths']) {
+        if (url.contains(redirectPath)) {
+          _hasRedirected = true;
+          String? status = uri.queryParameters['status'];
+          if (status != null) {
+            await logout(context);
+            widget.onCallback?.call(WebViewCallback.redirect(status));
+            Navigator.of(context).pop();
+            return NavigationActionPolicy.CANCEL;
+          }
+        }
+      }
+    }
+
+    // Handle downloads
+    bool isDownloadable = urlConfig['downloadableExtensions']
+        .any((ext) => url.toLowerCase().contains(ext)) ||
+        urlConfig['downloadablePaths']
+            .any((path) => url.toLowerCase().contains(path));
+
+    if (isDownloadable) {
+      String fileExt = _getFileExtension(url);
       await _onDownloadStartRequest(
         controller,
         DownloadStartRequest(
           url: uri as WebUri,
-          mimeType: 'application/pdf',
-          contentDisposition: 'attachment',
-          userAgent: _buildWebViewSettings().userAgent,
+          mimeType: urlConfig['mimeTypes'][fileExt] ?? 'application/pdf',
+          contentDisposition: urlConfig['downloadSettings']['contentDisposition'],
+          userAgent: _currentUserAgent,
           suggestedFilename: uri.pathSegments.last,
           contentLength: -1,
         ),
@@ -535,20 +595,12 @@ class CustomWebViewState extends State<WebView> {
       return NavigationActionPolicy.CANCEL;
     }
 
-    bool isAllowediOS =
-        whitelistedUrlsIos.any((white) => url.contains(white)) ||
-            (hostName.isNotEmpty && url.contains(hostName));
+    // Handle whitelisted URLs
+    bool isAllowed = Platform.isAndroid
+        ? widget.whitelistedUrlsAndroid?.any((white) => url.contains(white)) ?? false
+        : widget.whitelistedUrlsIos?.any((white) => url.contains(white)) ?? false;
 
-    bool isAllowedAndroid = whitelistedUrlsAndroid.any((white) =>
-        url.contains(white) || (hostName.isNotEmpty && url.contains(hostName)));
-
-    if (Platform.isAndroid && isAllowedAndroid) {
-      // URL is whitelisted - allow in WebView
-      return NavigationActionPolicy.ALLOW;
-    }
-
-    if (Platform.isIOS && isAllowediOS) {
-      // URL is whitelisted - allow in WebView
+    if (isAllowed || (widget.hostName?.isNotEmpty == true && url.contains(widget.hostName!))) {
       return NavigationActionPolicy.ALLOW;
     }
 
@@ -556,10 +608,9 @@ class CustomWebViewState extends State<WebView> {
       return NavigationActionPolicy.CANCEL;
     }
 
-    // URL is not whitelisted - open externally
+    // Open externally
     try {
-      await Future.delayed(
-          const Duration(milliseconds: 200)); // Small delay to avoid conflicts
+      await Future.delayed(Duration(milliseconds: urlConfig['delayBeforeExternalLaunch']));
       await launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication);
     } catch (e) {
       debugPrint("Error launching URL: $e");
@@ -579,6 +630,10 @@ class CustomWebViewState extends State<WebView> {
 
   @override
   Widget build(BuildContext context) {
+    final otherConfig = WebView.config["otherConfig"];
+    final resizeToAvoidBottomInset = Platform.isAndroid
+        ? otherConfig['resizeToAvoidBottomInset']['android']
+        : otherConfig['resizeToAvoidBottomInset']['ios'];
     return Scaffold(
       resizeToAvoidBottomInset:  true,
       body: WillPopScope(
@@ -643,18 +698,18 @@ class CustomWebViewState extends State<WebView> {
                   if (resource ==
                       PermissionResourceType.CAMERA_AND_MICROPHONE) {
                     granted &=
-                        await _handlePermissionRequest(Permission.camera);
+                    await _handlePermissionRequest(Permission.camera);
                     granted &=
-                        await _handlePermissionRequest(Permission.microphone);
+                    await _handlePermissionRequest(Permission.microphone);
                   } else if (resource == PermissionResourceType.MICROPHONE) {
                     granted &=
-                        await _handlePermissionRequest(Permission.microphone);
+                    await _handlePermissionRequest(Permission.microphone);
                   } else if (resource == PermissionResourceType.CAMERA) {
                     granted &=
-                        await _handlePermissionRequest(Permission.camera);
+                    await _handlePermissionRequest(Permission.camera);
                   } else if (resource == PermissionResourceType.NOTIFICATIONS) {
                     granted &=
-                        await _handlePermissionRequest(Permission.notification);
+                    await _handlePermissionRequest(Permission.notification);
                   }
                 }
                 return PermissionResponse(
@@ -677,8 +732,8 @@ class CustomWebViewState extends State<WebView> {
 
                   await controller.setSettings(
                       settings: InAppWebViewSettings(
-                    userAgent: _currentUserAgent,
-                  ));
+                        userAgent: _currentUserAgent,
+                      ));
 
                   debugPrint(
                       'Changed user agent for URL $newUrl to: $_currentUserAgent');
