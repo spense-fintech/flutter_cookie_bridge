@@ -159,3 +159,7 @@
 ## 1.1.13 -2025-03-12
 
 - Minor change for keyboard layout
+
+## 1.1.14 -2025-04-07
+
+- Configuration testing
