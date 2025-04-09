@@ -163,3 +163,7 @@
 ## 1.1.14 -2025-04-07
 
 - Configuration testing
+
+## 1.1.15 -2025-04-09
+
+- Email url open fix
