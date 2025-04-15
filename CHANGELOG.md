@@ -167,3 +167,7 @@
 ## 1.1.15 -2025-04-09
 
 - Email url open fix
+
+## 1.1.16 -2025-04-15
+
+- AppBoundDomains fix
