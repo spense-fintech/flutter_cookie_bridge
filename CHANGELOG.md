@@ -168,6 +168,6 @@
 
 - Email url open fix
 
-## 1.1.16 -2025-04-15
+## 1.1.161 -2025-04-15
 
 - AppBoundDomains fix
