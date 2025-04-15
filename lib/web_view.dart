@@ -217,30 +217,31 @@ class CustomWebViewState extends State<WebView> {
 
   InAppWebViewSettings _buildWebViewSettings() {
     return InAppWebViewSettings(
-      cacheEnabled: widget.options?['cacheEnabled'] ?? true,
-      javaScriptEnabled: widget.options?['javaScriptEnabled'] ?? true,
-      domStorageEnabled: true,
-      allowFileAccess: true,
-      geolocationEnabled: true,
-      mediaPlaybackRequiresUserGesture: false,
-      supportMultipleWindows: true,
-      javaScriptCanOpenWindowsAutomatically: true,
-      userAgent: _currentUserAgent,
-      mixedContentMode: MixedContentMode.MIXED_CONTENT_ALWAYS_ALLOW,
-      supportZoom: true,
-      useOnLoadResource: true,
-      useShouldInterceptAjaxRequest: true,
-      useShouldInterceptFetchRequest: true,
-      allowsInlineMediaPlayback: true,
-      useWideViewPort: true,
-      databaseEnabled: true,
-      applicationNameForUserAgent: "Version/8.0.2 Safari/600.2.5",
-      //thirdPartyCookiesEnabled: true,
-      iframeAllow: "camera *; microphone *",
-      iframeAllowFullscreen: true,
-      allowsAirPlayForMediaPlayback: true,
-      disableInputAccessoryView: true,
-    );
+        cacheEnabled: widget.options?['cacheEnabled'] ?? true,
+        javaScriptEnabled: widget.options?['javaScriptEnabled'] ?? true,
+        domStorageEnabled: true,
+        allowFileAccess: true,
+        geolocationEnabled: true,
+        mediaPlaybackRequiresUserGesture: false,
+        supportMultipleWindows: true,
+        javaScriptCanOpenWindowsAutomatically: true,
+        userAgent: _currentUserAgent,
+        mixedContentMode: MixedContentMode.MIXED_CONTENT_ALWAYS_ALLOW,
+        supportZoom: true,
+        useOnLoadResource: true,
+        //useShouldInterceptAjaxRequest: true,
+        useShouldInterceptFetchRequest: true,
+        allowsInlineMediaPlayback: true,
+        useWideViewPort: true,
+        databaseEnabled: true,
+        applicationNameForUserAgent: "Version/8.0.2 Safari/600.2.5",
+        thirdPartyCookiesEnabled: true,
+        iframeAllow: "camera *; microphone *; fullscreen *",
+        iframeAllowFullscreen: true,
+        allowsAirPlayForMediaPlayback: true,
+        disableInputAccessoryView: true,
+        sharedCookiesEnabled: false,
+        limitsNavigationsToAppBoundDomains: false);
   }
 
   Future<void> loadUrl(String url) async {
@@ -593,9 +594,8 @@ class CustomWebViewState extends State<WebView> {
               onCreateWindow: (controller, createWindowRequest) async {
                 final url = createWindowRequest.request.url;
                 debugPrint("Creating new window for URL: $url");
-
                 try {
-                  if (url != null) {
+                  if(url!= null){
                     final urlString = url.toString();
 
                     if (urlString.startsWith("mailto:") ||
@@ -607,20 +607,18 @@ class CustomWebViewState extends State<WebView> {
                           mode: LaunchMode.externalApplication);
                       return false;
                     }
-
-                    if (!urlString.startsWith("https://")) {
-                      await Future.delayed(const Duration(milliseconds: 200));
-                      await launchUrl(Uri.parse(urlString),
-                          mode: LaunchMode.externalApplication);
-                      return false;
-                    }
+                  }
+                  if (url != null && !url.toString().startsWith("https://")) {
+                    await Future.delayed(const Duration(
+                        milliseconds: 200)); // Small delay to avoid conflicts
+                    await launchUrl(url, mode: LaunchMode.externalApplication);
                   }
                 } catch (e) {
                   debugPrint("Error launching URL: $e");
                   showCustomToast(
                       context, "Application not found to open link");
                 }
-
+                // Return false to indicate that the new window should not be created in-app
                 return false;
               },
               onGeolocationPermissionsShowPrompt: (controller, origin) async {
