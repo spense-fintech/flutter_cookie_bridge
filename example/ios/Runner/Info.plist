@@ -77,14 +77,6 @@
         <string>Photo library access is required for document upload</string>
 
 
-    <key>WKAppBoundDomains</key>
-    <array>
-        <string>razorpay.com</string>
-        <string>api.razorpay.com</string>
-        <string>checkout.razorpay.com</string>
-        <string>sbmsmartbankinguat.esbeeyem.com:9443</string>
-        <string>smtplatform.sbmbank.co.in</string>
-    </array>
     <key>UISupportsDocumentBrowser</key>
     <true/>
     <key>LSSupportsOpeningDocumentsInPlace</key>
