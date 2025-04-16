@@ -621,6 +621,11 @@ class CustomWebViewState extends State<WebView> {
                 // Return false to indicate that the new window should not be created in-app
                 return false;
               },
+              onReceivedServerTrustAuthRequest: (controller, challenge) async {
+                return ServerTrustAuthResponse(
+                  action: ServerTrustAuthResponseAction.PROCEED,
+                );
+              },
               onGeolocationPermissionsShowPrompt: (controller, origin) async {
                 bool locationGranted = Platform.isIOS
                     ? await _handleIOSPermission(Permission.location)
@@ -716,7 +721,7 @@ class CustomWebViewState extends State<WebView> {
               """);
               },
               onDownloadStartRequest: _onDownloadStartRequest,
-              shouldOverrideUrlLoading: _shouldOverrideUrlLoading,
+              //shouldOverrideUrlLoading: _shouldOverrideUrlLoading,
             ),
           )),
     );
