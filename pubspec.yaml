@@ -12,10 +12,7 @@ dependencies:
   flutter:
     sdk: flutter
   flutter_inappwebview:
-    git:
-      url: https://github.com/RohitSpense/flutter_inappwebview.git
-      ref: 579acd95e0ce3f022e3cc4c71f89841a6c727890
-      path: flutter_inappwebview
+    path: ./flutter_inappwebview/flutter_inappwebview
 
 
   plugin_platform_interface: ^2.1.8
