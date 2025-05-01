@@ -22,18 +22,20 @@ class WebView extends StatefulWidget {
   final VoidCallback? onPageFinished;
   final String karzaDomain = "sbmkyc";
   final String razorpayDomain = "razorpay";
+  final Function(Map<String, dynamic>)? analyticsLogger;
 
-  WebView(
-      {Key? key,
-      required this.url,
-      required this.cookie,
-      this.options,
-      this.onCallback,
-      this.whitelistedUrlsAndroid,
-      this.whitelistedUrlsIos,
-      this.hostName,
-      this.onPageFinished})
-      : super(key: key);
+  WebView({
+    Key? key,
+    required this.url,
+    required this.cookie,
+    this.options,
+    this.onCallback,
+    this.whitelistedUrlsAndroid,
+    this.whitelistedUrlsIos,
+    this.hostName,
+    this.onPageFinished,
+    this.analyticsLogger,
+  }) : super(key: key);
 
   Future<void> loadUrl(String url) async {
     final state = (key as GlobalKey<CustomWebViewState>?)?.currentState;
@@ -92,6 +94,12 @@ class CustomWebViewState extends State<WebView> {
     }
     _webViewController = null;
     super.dispose();
+  }
+
+  void _logAnalytics(Map<String, dynamic> info) {
+    if (widget.analyticsLogger != null) {
+      widget.analyticsLogger!(info);
+    }
   }
 
   Future<bool> _handleIOSPermission(Permission permission) async {
@@ -510,6 +518,8 @@ class CustomWebViewState extends State<WebView> {
             url.contains('/session-expired?status='))) {
       _hasRedirected = true;
       String? status = uri.queryParameters['status'];
+      _logAnalytics(
+          {"event": "FLUTTER_WEBVIEW_CALLBACK", "url": "${url.toString()}", "status" : status});
       if (status != null) {
         await logout(context);
         widget.onCallback?.call(WebViewCallback.redirect(status));
@@ -595,7 +605,7 @@ class CustomWebViewState extends State<WebView> {
                 final url = createWindowRequest.request.url;
                 debugPrint("Creating new window for URL: $url");
                 try {
-                  if(url!= null){
+                  if (url != null) {
                     final urlString = url.toString();
 
                     if (urlString.startsWith("mailto:") ||
@@ -702,6 +712,9 @@ class CustomWebViewState extends State<WebView> {
                 if (widget.onPageFinished != null) {
                   widget.onPageFinished!();
                 }
+                _logAnalytics(
+                    {"event": "WEBVIEW_LOADED", "url": "${url.toString()}"});
+
                 await controller.evaluateJavascript(source: """
                 (function() {
                   let originalOpen = window.open;
