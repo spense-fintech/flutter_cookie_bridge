@@ -159,3 +159,23 @@
 ## 1.1.13 -2025-03-12
 
 - Minor change for keyboard layout
+
+## 1.1.14 -2025-04-07
+
+- Configuration testing
+
+## 1.1.15 -2025-04-09
+
+- Email url open fix
+
+## 1.1.161 -2025-04-15
+
+- AppBoundDomains fix
+
+## 1.1.162 -2025-04-15
+
+- UI fix
+
+## 1.1.163 -2025-04-17
+
+- Used fork webview package

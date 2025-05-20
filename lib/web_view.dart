@@ -665,7 +665,7 @@ class CustomWebViewState extends State<WebView> {
         ? otherConfig['resizeToAvoidBottomInset']['android']
         : otherConfig['resizeToAvoidBottomInset']['ios'];
     return Scaffold(
-      resizeToAvoidBottomInset:  true,
+      resizeToAvoidBottomInset: Platform.isIOS ? true : true,
       body: WillPopScope(
           onWillPop: _onWillPop,
           child: SafeArea(
@@ -679,6 +679,19 @@ class CustomWebViewState extends State<WebView> {
                 final url = createWindowRequest.request.url;
                 debugPrint("Creating new window for URL: $url");
                 try {
+                  if(url!= null){
+                    final urlString = url.toString();
+
+                    if (urlString.startsWith("mailto:") ||
+                        urlString.contains("@")) {
+                      final emailUrl = urlString.startsWith("mailto:")
+                          ? urlString
+                          : "mailto:$urlString";
+                      await launchUrl(Uri.parse(emailUrl),
+                          mode: LaunchMode.externalApplication);
+                      return false;
+                    }
+                  }
                   if (url != null && !url.toString().startsWith("https://")) {
                     await Future.delayed(const Duration(
                         milliseconds: 200)); // Small delay to avoid conflicts

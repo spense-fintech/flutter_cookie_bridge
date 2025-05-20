@@ -27,12 +27,12 @@ class FlutterCookieBridge {
 
   Future<WebView> getWebView(
       {required String url,
-      Map<String, dynamic>? options,
-      WebViewCallbackFunction? callback,
-      List<String>? whitelistedUrlsAndroid,
-      List<String>? whitelistedUrlsIos,
-      String? hostName,
-      VoidCallback? onPageFinished}) async {
+        Map<String, dynamic>? options,
+        WebViewCallbackFunction? callback,
+        List<String>? whitelistedUrlsAndroid,
+        List<String>? whitelistedUrlsIos,
+        String? hostName,
+        VoidCallback? onPageFinished}) async {
     List<String> cookies = await _sessionManager.getSessionCookies();
     String cookie = "";
     if (cookies.isNotEmpty) {

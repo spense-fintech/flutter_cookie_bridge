@@ -1,6 +1,6 @@
 name: flutter_cookie_bridge
 description: A Flutter plugin that synchronizes cookies between network requests and WebViews.
-version: 1.1.13
+version: 1.1.163
 repository: https://github.com/spense-fintech/flutter_cookie_bridge
 issue_tracker: https://github.com/spense-fintech/flutter_cookie_bridge/issues
 environment:
@@ -11,7 +11,10 @@ dependencies:
   dio: ^5.7.0
   flutter:
     sdk: flutter
-  flutter_inappwebview: ^6.0.0
+  flutter_inappwebview:
+    path: ./flutter_inappwebview/flutter_inappwebview
+
+
   plugin_platform_interface: ^2.1.8
   shared_preferences: ^2.2.2
   url_launcher: ^6.0.20
