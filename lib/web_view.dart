@@ -20,8 +20,42 @@ class WebView extends StatefulWidget {
   final List<String>? whitelistedUrlsAndroid;
   final List<String>? whitelistedUrlsIos;
   final String? hostName;
-  final VoidCallback? onPageFinished;
+  late final VoidCallback? onPageFinished;
   final Function(Map<String, dynamic>)? analyticsLogger;
+
+  // Future<void> updateWebView({
+  //   required String url,
+  //   required String cookie,
+  //   Map<String, dynamic>? options,
+  //   Function(WebViewCallback)? callback,
+  //   List<String>? whitelistedUrlsAndroid,
+  //   List<String>? whitelistedUrlsIos,
+  //   String? hostName,
+  //   VoidCallback? onPageFinished,
+  //   analyticsLogger,
+  // }) async {
+  //   final state = (key as GlobalKey<CustomWebViewState>).currentState;
+
+  //   if (state != null) {
+  //     state._currentUrl = url;
+  //     // state._headers = {'Cookie': cookie};
+
+  //     this.onCallback = callback;
+
+  //     if (onPageFinished != null) {
+  //       // We'll store the callback reference for later use
+  //       this.onPageFinished = onPageFinished;
+  //     }
+
+  //     if (state._webViewController != null) {
+  //       await state._syncCookiesToWebView();
+
+  //     }
+  //   } else {
+  //     // throw Exception("WebView state is not available");
+  //     // TODO: Handle the case when state is not available
+  //   }
+  // }
 
 
   static final Map<String, dynamic> localConfig = {
@@ -76,8 +110,8 @@ class WebView extends StatefulWidget {
         "/download_statements"
       ],
       "redirectPaths": [
-        "/api/redirect?status=",
-        "/api/session-expired?status="
+        "/redirect?status=",
+        "/session-expired?status="
       ],
       "protocolHandling": {
         "defaultProtocol": "https://",
@@ -101,8 +135,11 @@ class WebView extends StatefulWidget {
     }
   };
 
-    static Map<String, dynamic> get config {
-    final instanceConfig = _instance?.options?['webview'];
+  static Map<String, dynamic> get config {
+    final instanceConfig = _instance?.options?['info'];
+
+   // print("instanceOptions2  ${_instance?.options?['info']}");
+    // print("instqanceConfig2 $instanceConfig ");
     if (instanceConfig == null ||
         (instanceConfig is Map && instanceConfig.isEmpty)) {
       debugPrint('using localwebview object');
@@ -123,7 +160,9 @@ class WebView extends StatefulWidget {
         this.onPageFinished,
         this.analyticsLogger
       })
-      : super(key: key);
+      : super(key: key){
+    _instance = this;
+  }
 
   Future<void> loadUrl(String url) async {
     final state = (key as GlobalKey<CustomWebViewState>?)?.currentState;
@@ -164,8 +203,11 @@ class CustomWebViewState extends State<WebView> {
   }
 
   String _determineUserAgent(String url) {
-    final userAgentConfig = WebView.config["userAgent"];
-    final domains = WebView.config["domains"];
+    final userAgentConfig = WebView.config['webview']["userAgent"];
+    final domains = WebView.config["webview"]["domains"];
+
+    // print("UserAgentConfig: $userAgentConfig");
+    // print("Domains: $domains");
 
     if (url.contains(domains['karza'] ?? '')) {
       return Platform.isIOS
@@ -320,25 +362,25 @@ class CustomWebViewState extends State<WebView> {
   }
 
   InAppWebViewSettings _buildWebViewSettings() {
-    final settings = WebView.config["settings"];
+    final settings = WebView.config["webview"]["settings"];
     return InAppWebViewSettings(
-      cacheEnabled: settings['cacheEnabled'] ?? true,
-      javaScriptEnabled: settings['javaScriptEnabled'] ?? true,
-      domStorageEnabled: settings['domStorageEnabled'] ?? true,
-      allowFileAccess: settings['allowFileAccess'] ?? true,
-      geolocationEnabled: settings['geolocationEnabled'] ?? true,
-      mediaPlaybackRequiresUserGesture: settings['mediaPlaybackRequiresUserGesture'] ?? false,
-      supportMultipleWindows: settings['supportMultipleWindows'] ?? true,
-      javaScriptCanOpenWindowsAutomatically: settings['javaScriptCanOpenWindowsAutomatically'] ?? true,
+      cacheEnabled: settings['cacheEnabled'] ,
+      javaScriptEnabled: settings['javaScriptEnabled'] ,
+      domStorageEnabled: settings['domStorageEnabled'] ,
+      allowFileAccess: settings['allowFileAccess'] ,
+      geolocationEnabled: settings['geolocationEnabled'],
+      mediaPlaybackRequiresUserGesture: settings['mediaPlaybackRequiresUserGesture'],
+      supportMultipleWindows: settings['supportMultipleWindows'] ,
+      javaScriptCanOpenWindowsAutomatically: settings['javaScriptCanOpenWindowsAutomatically'],
       userAgent: _currentUserAgent,
       mixedContentMode: MixedContentMode.MIXED_CONTENT_ALWAYS_ALLOW,
-      supportZoom: settings['supportZoom'] ?? true,
+      supportZoom: settings['supportZoom'] ,
       useOnLoadResource: true,
       useShouldInterceptAjaxRequest: true,
       useShouldInterceptFetchRequest: true,
-      allowsInlineMediaPlayback: settings['allowsInlineMediaPlayback'] ?? true,
-      useWideViewPort: settings['useWideViewPort'] ?? true,
-      databaseEnabled: settings['databaseEnabled'] ?? true,
+      allowsInlineMediaPlayback: settings['allowsInlineMediaPlayback'] ,
+      useWideViewPort: settings['useWideViewPort'] ,
+      databaseEnabled: settings['databaseEnabled'] ,
       applicationNameForUserAgent: "Version/8.0.2 Safari/600.2.5",
       iframeAllow: settings["iframeAllow"],
       iframeAllowFullscreen: settings["iframeAllowFullScreen"],
@@ -588,7 +630,7 @@ class CustomWebViewState extends State<WebView> {
       NavigationAction navigationAction) async {
     Uri uri = navigationAction.request.url!;
     String url = uri.toString();
-    final urlConfig = WebView.config["urlHandling"];
+    final urlConfig = WebView.config["webview"]["urlHandling"];
 
     debugPrint("Current url: $url");
 
@@ -616,6 +658,8 @@ class CustomWebViewState extends State<WebView> {
           String? status = uri.queryParameters['status'];
           if (status != null) {
             await logout(context);
+            _logAnalytics(
+                {"event": "FLUTTER_WEBVIEW_CALLBACK", "url": "${url.toString()}", "status" : status});
             widget.onCallback?.call(WebViewCallback.redirect(status));
             Navigator.of(context).pop();
             return NavigationActionPolicy.CANCEL;
@@ -681,7 +725,7 @@ class CustomWebViewState extends State<WebView> {
 
   @override
   Widget build(BuildContext context) {
-    final otherConfig = WebView.config["otherConfig"];
+    final otherConfig = WebView.config['webview']["otherConfig"];
     final resizeToAvoidBottomInset = Platform.isAndroid
         ? otherConfig['resizeToAvoidBottomInset']['android']
         : otherConfig['resizeToAvoidBottomInset']['ios'];
