@@ -12,6 +12,7 @@ import 'package:open_filex/open_filex.dart';
 import 'package:http/http.dart' as http;
 
 class WebView extends StatefulWidget {
+  static WebView? _instance;
   final String url;
   final String cookie;
   final Map<String, dynamic>? options;
