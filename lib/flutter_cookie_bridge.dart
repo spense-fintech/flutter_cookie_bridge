@@ -25,29 +25,37 @@ class FlutterCookieBridge {
     await _sessionManager.clearSession();
   }
 
+  Function(Map<String, dynamic>)? _analyticsLogger;
+
+  void setAnalyticsLogger(Function(Map<String, dynamic>) logger) {
+    _analyticsLogger = logger;
+  }
+
   Future<WebView> getWebView(
       {required String url,
-        Map<String, dynamic>? options,
-        WebViewCallbackFunction? callback,
-        List<String>? whitelistedUrlsAndroid,
-        List<String>? whitelistedUrlsIos,
-        String? hostName,
-        VoidCallback? onPageFinished}) async {
+      Map<String, dynamic>? options,
+      WebViewCallbackFunction? callback,
+      List<String>? whitelistedUrlsAndroid,
+      List<String>? whitelistedUrlsIos,
+      String? hostName,
+      VoidCallback? onPageFinished}) async {
     List<String> cookies = await _sessionManager.getSessionCookies();
     String cookie = "";
     if (cookies.isNotEmpty) {
       cookie = cookies.join('; ');
     }
     _webView = await WebView(
-        key: GlobalKey<CustomWebViewState>(),
-        url: url,
-        cookie: cookie,
-        options: options,
-        onCallback: callback,
-        whitelistedUrlsAndroid: whitelistedUrlsAndroid,
-        whitelistedUrlsIos: whitelistedUrlsIos,
-        hostName: hostName,
-        onPageFinished: onPageFinished);
+      key: GlobalKey<CustomWebViewState>(),
+      url: url,
+      cookie: cookie,
+      options: options,
+      onCallback: callback,
+      whitelistedUrlsAndroid: whitelistedUrlsAndroid,
+      whitelistedUrlsIos: whitelistedUrlsIos,
+      hostName: hostName,
+      onPageFinished: onPageFinished,
+      analyticsLogger: _analyticsLogger,
+    );
 
     return _webView;
   }

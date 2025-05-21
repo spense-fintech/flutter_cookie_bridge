@@ -178,6 +178,12 @@ class CustomWebViewState extends State<WebView> {
     super.dispose();
   }
 
+  void _logAnalytics(Map<String, dynamic> info) {
+    if (widget.analyticsLogger != null) {
+      widget.analyticsLogger!(info);
+    }
+  }
+
   Future<bool> _handleIOSPermission(Permission permission) async {
     if (Platform.isIOS) {
       final status = await permission.status;
@@ -666,7 +672,7 @@ class CustomWebViewState extends State<WebView> {
         ? otherConfig['resizeToAvoidBottomInset']['android']
         : otherConfig['resizeToAvoidBottomInset']['ios'];
     return Scaffold(
-      resizeToAvoidBottomInset: Platform.isIOS ? true : true,
+      resizeToAvoidBottomInset: true,
       body: WillPopScope(
           onWillPop: _onWillPop,
           child: SafeArea(
@@ -680,7 +686,7 @@ class CustomWebViewState extends State<WebView> {
                 final url = createWindowRequest.request.url;
                 debugPrint("Creating new window for URL: $url");
                 try {
-                  if(url!= null){
+                  if (url != null) {
                     final urlString = url.toString();
 
                     if (urlString.startsWith("mailto:") ||
@@ -787,6 +793,9 @@ class CustomWebViewState extends State<WebView> {
                 if (widget.onPageFinished != null) {
                   widget.onPageFinished!();
                 }
+                _logAnalytics(
+                    {"event": "WEBVIEW_LOADED", "url": "${url.toString()}"});
+
                 await controller.evaluateJavascript(source: """
                 (function() {
                   let originalOpen = window.open;

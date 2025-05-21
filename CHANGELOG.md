@@ -179,3 +179,7 @@
 ## 1.1.163 -2025-04-17
 
 - Used fork webview package
+
+## 1.1.164 -2025-05-02
+
+- Added analytics
