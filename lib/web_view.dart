@@ -23,82 +23,93 @@ class WebView extends StatefulWidget {
   final VoidCallback? onPageFinished;
   final Function(Map<String, dynamic>)? analyticsLogger;
 
-  static Map<String, dynamic> get config {
-    return _instance?.options?['webview'] ?? {};
-  }
 
-  // static final Map<String, dynamic> config = {
-  //   "settings": {
-  //     "cacheEnabled": true,
-  //     "javaScriptEnabled": true,
-  //     "domStorageEnabled": true,
-  //     "allowFileAccess": true,
-  //     "geolocationEnabled": true,
-  //     "mediaPlaybackRequiresUserGesture": false,
-  //     "supportMultipleWindows": true,
-  //     "javaScriptCanOpenWindowsAutomatically": true,
-  //     "mixedContentMode": "MIXED_CONTENT_ALWAYS_ALLOW",
-  //     "supportZoom": true,
-  //     "allowsInlineMediaPlayback": true,
-  //     "useWideViewPort": true,
-  //     "databaseEnabled": true
-  //   },
-  //   "userAgent": {
-  //     "default": {
-  //       "ios": "Mozilla/5.0 (iPhone; CPU iPhone OS 16_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.0 Mobile/15E148 Safari/604.1",
-  //       "android": "Mozilla/5.0 (iPhone; CPU iPhone OS 14_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/14.0 Mobile/15E148 Safari/604.1"
-  //     },
-  //     "karza": {
-  //       "ios": "Mozilla/5.0 (iPhone; CPU iPhone OS 16_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.0 Mobile/15E148 Safari/604.1",
-  //       "android": "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/604.1"
-  //     }
-  //   },
-  //   "domains": {
-  //     "karza": "sbmkyc",
-  //     "razorpay": "razorpay"
-  //   },
-  //   "otherConfig": {
-  //     "resizeToAvoidBottomInset": {
-  //       "android": true,
-  //       "ios": true
-  //     }
-  //   },
-  //   "urlHandling": {
-  //     "delayBeforeExternalLaunch": 200,
-  //     "downloadableExtensions": [
-  //       ".pdf",
-  //       ".jpeg",
-  //       ".png"
-  //     ],
-  //     "downloadablePaths": [
-  //       "/statements/",
-  //       "/download_statements"
-  //     ],
-  //     "redirectPaths": [
-  //       "/redirect?status=",
-  //       "/session-expired?status="
-  //     ],
-  //     "protocolHandling": {
-  //       "defaultProtocol": "https://",
-  //       "externalProtocols": [
-  //         "tel:",
-  //         "mailto:",
-  //         "whatsapp:",
-  //         "maps:"
-  //       ]
-  //     },
-  //     "mimeTypes": {
-  //       ".pdf": "application/pdf",
-  //       ".jpeg": "image/jpeg",
-  //       ".png": "image/png"
-  //     },
-  //     "downloadSettings": {
-  //       "contentDisposition": "attachment",
-  //       "retryAttempts": 5,
-  //       "retryDelay": 100
-  //     }
-  //   }
-  // };
+  static final Map<String, dynamic> localConfig = {
+    "settings": {
+      "cacheEnabled": true,
+      "javaScriptEnabled": true,
+      "domStorageEnabled": true,
+      "allowFileAccess": true,
+      "geolocationEnabled": true,
+      "mediaPlaybackRequiresUserGesture": false,
+      "supportMultipleWindows": true,
+      "javaScriptCanOpenWindowsAutomatically": true,
+      "mixedContentMode": "MIXED_CONTENT_ALWAYS_ALLOW",
+      "supportZoom": true,
+      "allowsInlineMediaPlayback": true,
+      "useWideViewPort": true,
+      "databaseEnabled": true,
+      "iframeAllowFullscreen": true,
+      "iframeAllow": "camera *; microphone *",
+      "allowsAirPlayForMediaPlayback": true,
+      "disableInputAccessoryView": true
+    },
+    "userAgent": {
+      "default": {
+        "ios": "Mozilla/5.0 (iPhone; CPU iPhone OS 16_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.0 Mobile/15E148 Safari/604.1",
+        "android": "Mozilla/5.0 (iPhone; CPU iPhone OS 14_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/14.0 Mobile/15E148 Safari/604.1"
+      },
+      "karza": {
+        "ios": "Mozilla/5.0 (iPhone; CPU iPhone OS 16_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.0 Mobile/15E148 Safari/604.1",
+        "android": "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/604.1"
+      }
+    },
+    "domains": {
+      "karza": "sbmkyc",
+      "razorpay": "razorpay"
+    },
+    "otherConfig": {
+      "resizeToAvoidBottomInset": {
+        "android": true,
+        "ios": true
+      }
+    },
+    "urlHandling": {
+      "delayBeforeExternalLaunch": 200,
+      "downloadableExtensions": [
+        ".pdf",
+        ".jpeg",
+        ".png"
+      ],
+      "downloadablePaths": [
+        "/statements/",
+        "/download_statements"
+      ],
+      "redirectPaths": [
+        "/api/redirect?status=",
+        "/api/session-expired?status="
+      ],
+      "protocolHandling": {
+        "defaultProtocol": "https://",
+        "externalProtocols": [
+          "tel:",
+          "mailto:",
+          "whatsapp:",
+          "maps:"
+        ]
+      },
+      "mimeTypes": {
+        ".pdf": "application/pdf",
+        ".jpeg": "image/jpeg",
+        ".png": "image/png"
+      },
+      "downloadSettings": {
+        "contentDisposition": "attachment",
+        "retryAttempts": 5,
+        "retryDelay": 100
+      }
+    }
+  };
+
+    static Map<String, dynamic> get config {
+    final instanceConfig = _instance?.options?['webview'];
+    if (instanceConfig == null ||
+        (instanceConfig is Map && instanceConfig.isEmpty)) {
+      debugPrint('using localwebview object');
+      return localConfig;
+    }
+    return instanceConfig;
+  }
 
   WebView(
       {Key? key,
@@ -329,10 +340,10 @@ class CustomWebViewState extends State<WebView> {
       useWideViewPort: settings['useWideViewPort'] ?? true,
       databaseEnabled: settings['databaseEnabled'] ?? true,
       applicationNameForUserAgent: "Version/8.0.2 Safari/600.2.5",
-      iframeAllow: "camera *; microphone *",
-      iframeAllowFullscreen: true,
-      allowsAirPlayForMediaPlayback: true,
-      disableInputAccessoryView: true,
+      iframeAllow: settings["iframeAllow"],
+      iframeAllowFullscreen: settings["iframeAllowFullScreen"],
+      allowsAirPlayForMediaPlayback: settings["allowsAirPlayForMediaPlayback"],
+      disableInputAccessoryView: settings["disableInputAccessoryView"],
     );
   }
 
