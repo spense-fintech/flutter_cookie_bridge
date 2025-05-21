@@ -278,7 +278,7 @@ class MyHomeState extends State<MyHome> {
       whitelistedUrlsIos: [
         "sbmsmartbankinguat.esbeeyem.com:9443",
         "smtplatform.sbmbank.co.in",
-        "sbmkycuat.esbeeyem.com",
+
         "razorpay.com",
         "uat-m2p-ccms.m2pfintech.com"
       ],
