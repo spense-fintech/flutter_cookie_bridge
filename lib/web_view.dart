@@ -21,6 +21,7 @@ class WebView extends StatefulWidget {
   final List<String>? whitelistedUrlsIos;
   final String? hostName;
   final VoidCallback? onPageFinished;
+  final Function(Map<String, dynamic>)? analyticsLogger;
 
   static Map<String, dynamic> get config {
     return _instance?.options?['webview'] ?? {};
@@ -108,7 +109,9 @@ class WebView extends StatefulWidget {
         this.whitelistedUrlsAndroid,
         this.whitelistedUrlsIos,
         this.hostName,
-        this.onPageFinished})
+        this.onPageFinished,
+        this.analyticsLogger
+      })
       : super(key: key);
 
   Future<void> loadUrl(String url) async {
