@@ -35,21 +35,21 @@ class WebView extends StatefulWidget {
   //   analyticsLogger,
   // }) async {
   //   final state = (key as GlobalKey<CustomWebViewState>).currentState;
-
+  //
   //   if (state != null) {
   //     state._currentUrl = url;
   //     // state._headers = {'Cookie': cookie};
-
+  //
   //     this.onCallback = callback;
-
+  //
   //     if (onPageFinished != null) {
   //       // We'll store the callback reference for later use
   //       this.onPageFinished = onPageFinished;
   //     }
-
+  //
   //     if (state._webViewController != null) {
   //       await state._syncCookiesToWebView();
-
+  //
   //     }
   //   } else {
   //     // throw Exception("WebView state is not available");
@@ -76,7 +76,9 @@ class WebView extends StatefulWidget {
       "iframeAllowFullscreen": true,
       "iframeAllow": "camera *; microphone *",
       "allowsAirPlayForMediaPlayback": true,
-      "disableInputAccessoryView": true
+      "disableInputAccessoryView": true,
+      "limitsNavigationsToAppBoundDomains": false,
+      "sharedCookiesEnabled": false
     },
     "userAgent": {
       "default": {
@@ -138,13 +140,14 @@ class WebView extends StatefulWidget {
   static Map<String, dynamic> get config {
     final instanceConfig = _instance?.options?['info'];
 
-   // print("instanceOptions2  ${_instance?.options?['info']}");
+    // print("instanceOptions2  ${_instance?.options?['info']}");
     // print("instqanceConfig2 $instanceConfig ");
     if (instanceConfig == null ||
         (instanceConfig is Map && instanceConfig.isEmpty)) {
       debugPrint('using localwebview object');
       return localConfig;
     }
+    debugPrint("using api response object");
     return instanceConfig;
   }
 
@@ -375,17 +378,20 @@ class CustomWebViewState extends State<WebView> {
       userAgent: _currentUserAgent,
       mixedContentMode: MixedContentMode.MIXED_CONTENT_ALWAYS_ALLOW,
       supportZoom: settings['supportZoom'] ,
-      useOnLoadResource: true,
-      useShouldInterceptAjaxRequest: true,
-      useShouldInterceptFetchRequest: true,
+      useOnLoadResource: settings['useOnLoadResource'] ,
+      useShouldInterceptAjaxRequest: settings["useShouldInterceptAjaxRequest"],
+      useShouldInterceptFetchRequest: settings["useShouldInterceptFetchRequest"],
       allowsInlineMediaPlayback: settings['allowsInlineMediaPlayback'] ,
-      useWideViewPort: settings['useWideViewPort'] ,
-      databaseEnabled: settings['databaseEnabled'] ,
+      useWideViewPort: settings['useWideViewPort'],
+      databaseEnabled: settings['databaseEnabled'],
       applicationNameForUserAgent: "Version/8.0.2 Safari/600.2.5",
       iframeAllow: settings["iframeAllow"],
       iframeAllowFullscreen: settings["iframeAllowFullScreen"],
       allowsAirPlayForMediaPlayback: settings["allowsAirPlayForMediaPlayback"],
       disableInputAccessoryView: settings["disableInputAccessoryView"],
+      limitsNavigationsToAppBoundDomains: settings['limitsNavigationsToAppBoundDomains'],
+      sharedCookiesEnabled: settings['sharedCookiesEnabled'],
+      thirdPartyCookiesEnabled: settings['thirdPartyCookiesEnabled'],
     );
   }
 
@@ -834,7 +840,6 @@ class CustomWebViewState extends State<WebView> {
                 // await _syncCookiesToWebView();
                 String newUrl = url.toString();
                 String newUserAgent = _determineUserAgent(newUrl);
-
                 if (newUserAgent != _currentUserAgent) {
                   _currentUserAgent = newUserAgent;
 
