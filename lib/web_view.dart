@@ -1,4 +1,6 @@
 import 'dart:io';
+import 'package:android_intent_plus/android_intent.dart';
+import 'package:android_intent_plus/flag.dart';
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_cookie_bridge/custom_toast.dart';
@@ -490,6 +492,61 @@ class CustomWebViewState extends State<WebView> {
 
     if (!url.startsWith("https://")) {
       try {
+        if (Platform.isAndroid) {
+          try {
+            if (url.contains("ms-outlook://")) {
+              print("Intent to open Outlook detected");
+              const AndroidIntent intent = AndroidIntent(
+                action: 'android.intent.action.MAIN',
+                category: 'android.intent.category.LAUNCHER',
+                package: 'com.microsoft.office.outlook',
+                // componentName: 'com.microsoft.office.outlook',
+                flags: <int>[Flag.FLAG_ACTIVITY_NEW_TASK],
+              );
+              await intent.launch();
+              return NavigationActionPolicy.CANCEL;
+            } else if (url.contains("googlegmail://")) {
+              print("Intent to open Gmail detected");
+              const AndroidIntent intent = AndroidIntent(
+                action: 'android.intent.action.MAIN',
+                category: 'android.intent.category.LAUNCHER',
+                package: 'com.google.android.gm',
+                flags: <int>[Flag.FLAG_ACTIVITY_NEW_TASK],
+              );
+              try {
+                await intent.launch();
+                return NavigationActionPolicy.CANCEL;
+              } catch (e) {
+                // Only show toast if launch actually fails
+                print("Error launching Gmail: $e");
+                showCustomToast(context, "Gmail app not found");
+                return NavigationActionPolicy.CANCEL;
+              }
+            } else if (url.contains("ymail://")) {
+              print("Intent to open Yahoo Mail detected");
+              const intent = AndroidIntent(
+                  package: 'com.yahoo.mobile.client.android.mail',
+                  componentName:
+                      'com.yahoo.mobile.client.android.mail.activity.MainActivity',
+                  action: 'android.intent.action.MAIN',
+                  flags: <int>[Flag.FLAG_ACTIVITY_NEW_TASK]);
+              try {
+                await intent.launch();
+                return NavigationActionPolicy.CANCEL;
+              } catch (e) {
+                // Only show toast if launch actually fails
+                print("Error launching Yahoo Mail: $e");
+                showCustomToast(context, "Yahoo Mail app not found");
+                return NavigationActionPolicy.CANCEL;
+              }
+            }
+            // If none of the email conditions match, continue with normal URL handling
+            return null; // Let the normal URL handling continue
+          } catch (e) {
+            print("Error launching email app: $e");
+            return NavigationActionPolicy.CANCEL;
+          }
+        }
         await Future.delayed(const Duration(
             milliseconds: 200)); // Small delay to avoid conflicts
         await launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication);
@@ -552,7 +609,6 @@ class CustomWebViewState extends State<WebView> {
       // URL is whitelisted - allow in WebView
       return NavigationActionPolicy.ALLOW;
     }
-
     if (url.contains("about:blank")) {
       return NavigationActionPolicy.CANCEL;
     }
@@ -595,7 +651,7 @@ class CustomWebViewState extends State<WebView> {
                 final url = createWindowRequest.request.url;
                 debugPrint("Creating new window for URL: $url");
                 try {
-                  if(url!= null){
+                  if (url != null) {
                     final urlString = url.toString();
 
                     if (urlString.startsWith("mailto:") ||
