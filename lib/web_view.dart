@@ -1,6 +1,4 @@
 import 'dart:io';
-import 'package:android_intent_plus/android_intent.dart';
-import 'package:android_intent_plus/flag.dart';
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_cookie_bridge/custom_toast.dart';
@@ -27,14 +25,14 @@ class WebView extends StatefulWidget {
 
   WebView(
       {Key? key,
-      required this.url,
-      required this.cookie,
-      this.options,
-      this.onCallback,
-      this.whitelistedUrlsAndroid,
-      this.whitelistedUrlsIos,
-      this.hostName,
-      this.onPageFinished})
+        required this.url,
+        required this.cookie,
+        this.options,
+        this.onCallback,
+        this.whitelistedUrlsAndroid,
+        this.whitelistedUrlsIos,
+        this.hostName,
+        this.onPageFinished})
       : super(key: key);
 
   Future<void> loadUrl(String url) async {
@@ -179,9 +177,9 @@ class CustomWebViewState extends State<WebView> {
           int firstEqualIndex = cookieString.indexOf('=');
           if (firstEqualIndex > 0) {
             String cookieName =
-                cookieString.substring(0, firstEqualIndex).trim();
+            cookieString.substring(0, firstEqualIndex).trim();
             String cookieValue =
-                cookieString.substring(firstEqualIndex + 1).trim();
+            cookieString.substring(firstEqualIndex + 1).trim();
 
             debugPrint('Setting cookie part: $cookieName=$cookieValue');
 
@@ -198,7 +196,7 @@ class CustomWebViewState extends State<WebView> {
 
       // Verify cookies were set correctly
       final cookies =
-          await CookieManager.instance().getCookies(url: WebUri(_currentUrl!));
+      await CookieManager.instance().getCookies(url: WebUri(_currentUrl!));
       debugPrint(
           'Cookies after sync: ${cookies.map((c) => '${c.name}=${c.value}').join('; ')}');
     } catch (e) {
@@ -400,9 +398,9 @@ class CustomWebViewState extends State<WebView> {
 
       // Get cookies for authentication
       final cookies =
-          await CookieManager.instance().getCookies(url: request.url);
+      await CookieManager.instance().getCookies(url: request.url);
       final cookieString =
-          cookies.map((c) => '${c.name}=${c.value}').join('; ');
+      cookies.map((c) => '${c.name}=${c.value}').join('; ');
       final headers = {
         'Cookie': cookieString,
       };
@@ -492,61 +490,6 @@ class CustomWebViewState extends State<WebView> {
 
     if (!url.startsWith("https://")) {
       try {
-        if (Platform.isAndroid) {
-          try {
-            if (url.contains("ms-outlook://")) {
-              print("Intent to open Outlook detected");
-              const AndroidIntent intent = AndroidIntent(
-                action: 'android.intent.action.MAIN',
-                category: 'android.intent.category.LAUNCHER',
-                package: 'com.microsoft.office.outlook',
-                // componentName: 'com.microsoft.office.outlook',
-                flags: <int>[Flag.FLAG_ACTIVITY_NEW_TASK],
-              );
-              await intent.launch();
-              return NavigationActionPolicy.CANCEL;
-            } else if (url.contains("googlegmail://")) {
-              print("Intent to open Gmail detected");
-              const AndroidIntent intent = AndroidIntent(
-                action: 'android.intent.action.MAIN',
-                category: 'android.intent.category.LAUNCHER',
-                package: 'com.google.android.gm',
-                flags: <int>[Flag.FLAG_ACTIVITY_NEW_TASK],
-              );
-              try {
-                await intent.launch();
-                return NavigationActionPolicy.CANCEL;
-              } catch (e) {
-                // Only show toast if launch actually fails
-                print("Error launching Gmail: $e");
-                showCustomToast(context, "Gmail app not found");
-                return NavigationActionPolicy.CANCEL;
-              }
-            } else if (url.contains("ymail://")) {
-              print("Intent to open Yahoo Mail detected");
-              const intent = AndroidIntent(
-                  package: 'com.yahoo.mobile.client.android.mail',
-                  componentName:
-                      'com.yahoo.mobile.client.android.mail.activity.MainActivity',
-                  action: 'android.intent.action.MAIN',
-                  flags: <int>[Flag.FLAG_ACTIVITY_NEW_TASK]);
-              try {
-                await intent.launch();
-                return NavigationActionPolicy.CANCEL;
-              } catch (e) {
-                // Only show toast if launch actually fails
-                print("Error launching Yahoo Mail: $e");
-                showCustomToast(context, "Yahoo Mail app not found");
-                return NavigationActionPolicy.CANCEL;
-              }
-            }
-            // If none of the email conditions match, continue with normal URL handling
-            return null; // Let the normal URL handling continue
-          } catch (e) {
-            print("Error launching email app: $e");
-            return NavigationActionPolicy.CANCEL;
-          }
-        }
         await Future.delayed(const Duration(
             milliseconds: 200)); // Small delay to avoid conflicts
         await launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication);
@@ -598,7 +541,7 @@ class CustomWebViewState extends State<WebView> {
             (hostName.isNotEmpty && url.contains(hostName));
 
     bool isAllowedAndroid = whitelistedUrlsAndroid.any((white) =>
-        url.contains(white) || (hostName.isNotEmpty && url.contains(hostName)));
+    url.contains(white) || (hostName.isNotEmpty && url.contains(hostName)));
 
     if (Platform.isAndroid && isAllowedAndroid) {
       // URL is whitelisted - allow in WebView
@@ -609,6 +552,7 @@ class CustomWebViewState extends State<WebView> {
       // URL is whitelisted - allow in WebView
       return NavigationActionPolicy.ALLOW;
     }
+
     if (url.contains("about:blank")) {
       return NavigationActionPolicy.CANCEL;
     }
@@ -637,7 +581,7 @@ class CustomWebViewState extends State<WebView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      resizeToAvoidBottomInset: Platform.isIOS ? true : true,
+      resizeToAvoidBottomInset: true,
       body: WillPopScope(
           onWillPop: _onWillPop,
           child: SafeArea(
@@ -651,7 +595,7 @@ class CustomWebViewState extends State<WebView> {
                 final url = createWindowRequest.request.url;
                 debugPrint("Creating new window for URL: $url");
                 try {
-                  if (url != null) {
+                  if(url!= null){
                     final urlString = url.toString();
 
                     if (urlString.startsWith("mailto:") ||
@@ -713,18 +657,18 @@ class CustomWebViewState extends State<WebView> {
                   if (resource ==
                       PermissionResourceType.CAMERA_AND_MICROPHONE) {
                     granted &=
-                        await _handlePermissionRequest(Permission.camera);
+                    await _handlePermissionRequest(Permission.camera);
                     granted &=
-                        await _handlePermissionRequest(Permission.microphone);
+                    await _handlePermissionRequest(Permission.microphone);
                   } else if (resource == PermissionResourceType.MICROPHONE) {
                     granted &=
-                        await _handlePermissionRequest(Permission.microphone);
+                    await _handlePermissionRequest(Permission.microphone);
                   } else if (resource == PermissionResourceType.CAMERA) {
                     granted &=
-                        await _handlePermissionRequest(Permission.camera);
+                    await _handlePermissionRequest(Permission.camera);
                   } else if (resource == PermissionResourceType.NOTIFICATIONS) {
                     granted &=
-                        await _handlePermissionRequest(Permission.notification);
+                    await _handlePermissionRequest(Permission.notification);
                   }
                 }
                 return PermissionResponse(
@@ -747,8 +691,8 @@ class CustomWebViewState extends State<WebView> {
 
                   await controller.setSettings(
                       settings: InAppWebViewSettings(
-                    userAgent: _currentUserAgent,
-                  ));
+                        userAgent: _currentUserAgent,
+                      ));
 
                   debugPrint(
                       'Changed user agent for URL $newUrl to: $_currentUserAgent');

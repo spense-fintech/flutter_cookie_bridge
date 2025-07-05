@@ -187,3 +187,7 @@
 ## 1.1.165 -2025-06-18
 
 - Handled email intent opening for gmail, yahoo and outlook
+
+## 1.1.166 -2025-07-05
+
+- Removed intent opening for gmail, yahoo, outlook
