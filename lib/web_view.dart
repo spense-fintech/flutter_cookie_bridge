@@ -1,4 +1,6 @@
 import 'dart:io';
+import 'package:android_intent_plus/android_intent.dart';
+import 'package:android_intent_plus/flag.dart';
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_cookie_bridge/custom_toast.dart';
@@ -486,16 +488,63 @@ class CustomWebViewState extends State<WebView> {
     Uri uri = navigationAction.request.url!;
     String url = uri.toString();
 
-    print("Current url: $url");
+    debugPrint("Current url: $url");
 
     if (!url.startsWith("https://")) {
       try {
-        await Future.delayed(const Duration(
-            milliseconds: 200)); // Small delay to avoid conflicts
-        await launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication);
+        if (Platform.isAndroid) {
+          debugPrint("entered in shouldOverrideUrlLoading");
+          if (url.contains("ms-outlook://")) {
+            debugPrint("Intent to open Outlook detected");
+            const AndroidIntent intent = AndroidIntent(
+              action: 'android.intent.action.MAIN',
+              category: 'android.intent.category.LAUNCHER',
+              package: 'com.microsoft.office.outlook',
+              // componentName: 'com.microsoft.office.outlook',
+              flags: <int>[Flag.FLAG_ACTIVITY_NEW_TASK],
+            );
+            await intent.launch();
+            return NavigationActionPolicy.CANCEL;
+          } else if (url.contains("googlegmail://")) {
+            debugPrint("Intent to open Gmail detected");
+            const AndroidIntent intent = AndroidIntent(
+              action: 'android.intent.action.MAIN',
+              category: 'android.intent.category.LAUNCHER',
+              package: 'com.google.android.gm',
+              flags: <int>[Flag.FLAG_ACTIVITY_NEW_TASK],
+            );
+            try {
+              await intent.launch();
+              return NavigationActionPolicy.CANCEL;
+            } catch (e) {
+              // Only show toast if launch actually fails
+              debugPrint("Error launching Gmail: $e");
+              showCustomToast(context, "Gmail app not found");
+              return NavigationActionPolicy.CANCEL;
+            }
+          } else if (url.contains("ymail://")) {
+            debugPrint("Intent to open Yahoo Mail detected");
+            const intent = AndroidIntent(
+                package: 'com.yahoo.mobile.client.android.mail',
+                componentName:
+                'com.yahoo.mobile.client.android.mail.activity.MainActivity',
+                action: 'android.intent.action.MAIN',
+                flags: <int>[Flag.FLAG_ACTIVITY_NEW_TASK]);
+            try {
+              await intent.launch();
+              return NavigationActionPolicy.CANCEL;
+            } catch (e) {
+              // Only show toast if launch actually fails
+              debugPrint("Error launching Yahoo Mail: $e");
+              showCustomToast(context, "Yahoo Mail app not found");
+              return NavigationActionPolicy.CANCEL;
+            }
+          }
+        }
       } catch (e) {
         debugPrint("Error launching URL: $e");
         showCustomToast(context, "Application not found to open link");
+        return NavigationActionPolicy.CANCEL;
       }
     }
 
@@ -552,13 +601,13 @@ class CustomWebViewState extends State<WebView> {
       // URL is whitelisted - allow in WebView
       return NavigationActionPolicy.ALLOW;
     }
-
     if (url.contains("about:blank")) {
       return NavigationActionPolicy.CANCEL;
     }
 
     // URL is not whitelisted - open externally
     try {
+      debugPrint("Launching external URL part 2");
       await Future.delayed(
           const Duration(milliseconds: 200)); // Small delay to avoid conflicts
       await launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication);
@@ -595,7 +644,7 @@ class CustomWebViewState extends State<WebView> {
                 final url = createWindowRequest.request.url;
                 debugPrint("Creating new window for URL: $url");
                 try {
-                  if(url!= null){
+                  if (url != null) {
                     final urlString = url.toString();
 
                     if (urlString.startsWith("mailto:") ||
@@ -609,6 +658,7 @@ class CustomWebViewState extends State<WebView> {
                     }
                   }
                   if (url != null && !url.toString().startsWith("https://")) {
+                    debugPrint("Opening external URL using create window: $url");
                     await Future.delayed(const Duration(
                         milliseconds: 200)); // Small delay to avoid conflicts
                     await launchUrl(url, mode: LaunchMode.externalApplication);
