@@ -95,6 +95,14 @@ class CustomWebViewState extends State<WebView> {
     _webViewController = null;
     super.dispose();
   }
+  Future<void> _handleRedirectTimeout(BuildContext context) async {
+    if (_hasRedirected) return;
+    _hasRedirected = true;
+    try { await _webViewController?.stopLoading(); } catch (_) {}
+    await logout(context);
+    widget.onCallback?.call(WebViewCallback.redirect('SESSION_EXPIRED'));
+    if (context.mounted) Navigator.of(context).pop();
+  }
 
   Future<bool> _handleIOSPermission(Permission permission) async {
     if (Platform.isIOS) {
@@ -566,6 +574,15 @@ class CustomWebViewState extends State<WebView> {
         return NavigationActionPolicy.CANCEL;
       }
     }
+    if (
+    (url.contains('/api/user/redirect') )) {
+      _hasRedirected = true;
+      await logout(context);
+      widget.onCallback?.call(WebViewCallback.redirect('SESSION_EXPIRED'));
+      Navigator.of(context).pop();
+      return NavigationActionPolicy.CANCEL;
+
+    }
     if (url.contains(".pdf") ||
         url.contains("/statements/") ||
         url.contains("/download_statements") ||
@@ -767,6 +784,16 @@ class CustomWebViewState extends State<WebView> {
               },
               onDownloadStartRequest: _onDownloadStartRequest,
               shouldOverrideUrlLoading: _shouldOverrideUrlLoading,
+              // onReceivedServerTrustAuthRequest: (controller, challenge) async {
+              //   return ServerTrustAuthResponse(action: ServerTrustAuthResponseAction.PROCEED);
+              // },
+              shouldInterceptFetchRequest: (controller, fetchRequest) async {
+                final url = fetchRequest.url.toString();
+                if (url.contains('/api/user/redirect')) {
+                  await _handleRedirectTimeout(context);
+                }
+                return null; // proceed normally
+              },
             ),
           )),
     );
