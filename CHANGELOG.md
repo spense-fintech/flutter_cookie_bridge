@@ -195,3 +195,7 @@
 ## 1.1.167 - 2025-08-04
 
 - Added  email intent opening for gmail, yahoo and outlook
+
+## 1.1.168 - 2025-09-26
+
+- Added  redirect handling in fetchRequest
